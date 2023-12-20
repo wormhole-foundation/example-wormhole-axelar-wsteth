@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.22;
 
-import {IBridgeEndpoint} from "./interfaces/IBridgeEndpoint.sol";
-import {IBridgeManager} from "./interfaces/IBridgeManager.sol";
-import {BridgeManagerMessage, MultiBridgeTokenTransfer} from "./Message.sol";
 import {Ownable} from "@axelar-network/axelar-gmp-sdk-solidity/contracts/utils/Ownable.sol";
 import {AxelarExecutable} from "@axelar-network/axelar-gmp-sdk-solidity/contracts/executable/AxelarExecutable.sol";
 import {IAxelarGasService} from "@axelar-network/axelar-gmp-sdk-solidity/contracts/interfaces/IAxelarGasService.sol";
+import {IBridgeEndpoint} from "./interfaces/IBridgeEndpoint.sol";
+import {IBridgeManager} from "./interfaces/IBridgeManager.sol";
+import {BridgeManagerMessage, MultiBridgeTokenTransfer} from "./Message.sol";
 
 contract AxelarEndpoint is IBridgeEndpoint, AxelarExecutable, Ownable {
     IAxelarGasService public immutable gasService;
