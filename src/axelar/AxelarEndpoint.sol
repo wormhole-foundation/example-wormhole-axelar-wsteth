@@ -90,6 +90,14 @@ contract AxelarEndpoint is IBridgeEndpoint, AxelarExecutable, Ownable {
         emitters[chainId] = emitter;
     }
 
+    function setAxelarChainId(
+        uint16 chainId,
+        string calldata chainName
+    ) external onlyOwner {
+        idToAxelarChainIds[chainId] = chainName;
+        axelarChainIdToId[chainName] = chainId;
+    }
+
     function transferBridgeManager(address target) external onlyManager {
         bridgeManager = IBridgeManager(target);
     }
