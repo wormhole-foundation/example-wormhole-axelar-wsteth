@@ -59,33 +59,6 @@ contract AxelarEndpoint is IBridgeEndpoint, AxelarExecutable, Ownable {
         bridgeManager = IBridgeManager(target);
     }
 
-    function parseBridgeManagerMessage(
-        bytes memory payload
-    ) internal view returns (string memory, string memory, bytes memory) {
-        // Decode the payload as a BridgeManagerMessage
-        BridgeManagerMessage memory message = abi.decode(
-            payload,
-            (BridgeManagerMessage)
-        );
-
-        // Check that the message is a token transfer
-        if (message.msgType == 1) {
-            MultiBridgeTokenTransfer memory msgTokenTransfer = abi.decode(
-                message.payload,
-                (MultiBridgeTokenTransfer)
-            );
-
-            // Returns destinationChain and destinationContract in a tuple of strings so that compatibles with AxelarGateway's callContract.
-            return (
-                string(abi.encodePacked(emitters[msgTokenTransfer.toChain])),
-                string(abi.encodePacked(msgTokenTransfer.to)),
-                message.payload
-            );
-        }
-
-        revert UnsupportedMessageType();
-    }
-
     function sendMessage(bytes memory payload) external payable onlyManager {
         (
             string memory destinationChain,
@@ -117,5 +90,32 @@ contract AxelarEndpoint is IBridgeEndpoint, AxelarExecutable, Ownable {
      */
     function getEmitter(uint16 chainId) external view returns (bytes32) {
         return emitters[chainId];
+    }
+
+    function parseBridgeManagerMessage(
+        bytes memory payload
+    ) internal view returns (string memory, string memory, bytes memory) {
+        // Decode the payload as a BridgeManagerMessage
+        BridgeManagerMessage memory message = abi.decode(
+            payload,
+            (BridgeManagerMessage)
+        );
+
+        // Check that the message is a token transfer
+        if (message.msgType == 1) {
+            MultiBridgeTokenTransfer memory msgTokenTransfer = abi.decode(
+                message.payload,
+                (MultiBridgeTokenTransfer)
+            );
+
+            // Returns destinationChain and destinationContract in a tuple of strings so that compatibles with AxelarGateway's callContract.
+            return (
+                string(abi.encodePacked(emitters[msgTokenTransfer.toChain])),
+                string(abi.encodePacked(msgTokenTransfer.to)),
+                message.payload
+            );
+        }
+
+        revert UnsupportedMessageType();
     }
 }
