@@ -86,7 +86,7 @@ contract AxelarEndpoint is IBridgeEndpoint, AxelarExecutable, Ownable {
     function setEmitter(
         uint16 chainId,
         bytes32 emitter
-    ) external onlyOwner {
+    ) external onlyManager {
         emitters[chainId] = emitter;
     }
 
