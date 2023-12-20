@@ -12,8 +12,10 @@ contract AxelarEndpoint is IBridgeEndpoint, AxelarExecutable, Ownable {
     IAxelarGasService public immutable gasService;
     IBridgeManager public bridgeManager;
 
+    // These mappings are used to convert between chainId and chainName as Axelar accept chainName as string format
     mapping(uint16 => string) public idToAxelarChainIds;
     mapping(string => uint16) public axelarChainIdToId;
+
     mapping(uint16 => bytes32) private emitters;
 
     modifier onlyManager() {
@@ -46,19 +48,9 @@ contract AxelarEndpoint is IBridgeEndpoint, AxelarExecutable, Ownable {
         bridgeManager = IBridgeManager(_bridgeManager);
     }
 
-    function setEmitter(
-        uint16 chainId,
-        string calldata emitter
-    ) external onlyOwner {
-        emitters[chainId] = keccak256(abi.encodePacked(emitter));
-        idToAxelarChainIds[chainId] = emitter;
-        axelarChainIdToId[emitter] = chainId;
-    }
-
-    function transferBridgeManager(address target) external onlyManager {
-        bridgeManager = IBridgeManager(target);
-    }
-
+    /**
+     * Send message to Axelar Gateway
+     */
     function sendMessage(bytes memory payload) external payable onlyManager {
         (
             string memory destinationChain,
@@ -77,12 +69,29 @@ contract AxelarEndpoint is IBridgeEndpoint, AxelarExecutable, Ownable {
         gateway.callContract(destinationChain, destinationContract, _payload);
     }
 
+    /**
+     * Receive message from Axelar Gateway
+     */
     function _execute(
         string calldata sourceChain,
         string calldata sourceAddress,
         bytes calldata payload
     ) internal override onlySourceEmitter(sourceAddress, sourceChain) {
         bridgeManager.attestationReceived(payload);
+    }
+
+    /**
+     * @notice Set the emitter for a given chainId
+     */
+    function setEmitter(
+        uint16 chainId,
+        bytes32 emitter
+    ) external onlyOwner {
+        emitters[chainId] = emitter;
+    }
+
+    function transferBridgeManager(address target) external onlyManager {
+        bridgeManager = IBridgeManager(target);
     }
 
     /**
@@ -110,8 +119,8 @@ contract AxelarEndpoint is IBridgeEndpoint, AxelarExecutable, Ownable {
 
             // Returns destinationChain and destinationContract in a tuple of strings so that compatibles with AxelarGateway's callContract.
             return (
+                idToAxelarChainIds[msgTokenTransfer.toChain],
                 string(abi.encodePacked(emitters[msgTokenTransfer.toChain])),
-                string(abi.encodePacked(msgTokenTransfer.to)),
                 message.payload
             );
         }
