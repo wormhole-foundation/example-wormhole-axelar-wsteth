@@ -7,7 +7,7 @@ import {IAxelarGasService} from "@axelar-network/axelar-gmp-sdk-solidity/contrac
 import {StringToBytes32, Bytes32ToString} from "@axelar-network/axelar-gmp-sdk-solidity/contracts/libs/Bytes32String.sol";
 import {Endpoint} from "./Endpoint.sol";
 import {IBridgeManager} from "./interfaces/IBridgeManager.sol";
-import {EndpointManagerMessage, NativeTokenTransfer} from "./Message.sol";
+import {EndpointManagerMessage, SetEmitterMessage, NativeTokenTransfer} from "./Message.sol";
 
 contract AxelarEndpoint is Endpoint, AxelarExecutable, Ownable {
     IAxelarGasService public immutable gasService;
@@ -55,15 +55,25 @@ contract AxelarEndpoint is Endpoint, AxelarExecutable, Ownable {
     /**
      * Revert if the message type is not supported
      */
-    function revertIfInvalidMessageType(bytes memory payload) internal pure {
-        // Decode the payload as a BridgeManagerMessage
+    function _handleMessage(bytes memory payload) internal {
+        // Decode the payload as a EndpointManagerMessage
         EndpointManagerMessage memory message = abi.decode(
             payload,
             (EndpointManagerMessage)
         );
 
         // This contract only supports message type 1 which is a NativeTokenTransfer.
-        if (message.msgType != 1) {
+        if (message.msgType == 1) {
+            // do nothing
+        } else if (message.msgType == 2) {
+            // setEmitter
+            SetEmitterMessage memory setEmitterMsg = abi.decode(
+                message.payload,
+                (SetEmitterMessage)
+            );
+
+            setEmitter(setEmitterMsg.chainId, setEmitterMsg.bridgeContract);
+        } else {
             revert UnsupportedMessageType();
         }
     }
@@ -77,7 +87,7 @@ contract AxelarEndpoint is Endpoint, AxelarExecutable, Ownable {
         uint16 recipientChain,
         bytes memory payload
     ) internal virtual override {
-        revertIfInvalidMessageType(payload);
+        _handleMessage(payload);
 
         string memory destinationContract = Bytes32ToString.toTrimmedString(
             emitters[recipientChain]

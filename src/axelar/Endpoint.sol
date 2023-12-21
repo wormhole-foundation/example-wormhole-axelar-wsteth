@@ -42,10 +42,7 @@ abstract contract Endpoint is IEndpoint {
         return emitters[chainId];
     }
 
-    function setEmitter(
-        uint16 chainId,
-        bytes32 bridgeContract
-    ) internal onlyManager {
+    function setEmitter(uint16 chainId, bytes32 bridgeContract) internal {
         emitters[chainId] = bridgeContract;
     }
 }

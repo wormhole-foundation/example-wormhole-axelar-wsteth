@@ -22,6 +22,14 @@ struct NativeTokenTransfer {
     uint16 toChain;
 }
 
+// SetEmitter payload corresponding to type == 2
+struct SetEmitterMessage {
+    /// @notice Chain ID of the emitter
+    uint16 chainId;
+    /// @notice Address of the emitter
+    bytes32 bridgeContract;
+}
+
 struct EndpointMessage {
     /// @notice Magic string (constant value set by messaging provider) that idenfies the payload as an endpoint-emitted payload.
     ///         Note that this is not a security critical field. It's meant to be used by messaging providers to identify which messages are Endpoint-related.
