@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.22;
 
-interface IBridgeManager {
+interface IEndpointManager {
     /// @notice Called by the user to send wstETH cross-chain.
     ///         This function will either lock or burn the sender's tokens.
     ///         If locking - this function will use transferFrom to pull tokens from the user and lock them.
@@ -24,5 +24,3 @@ interface IBridgeManager {
     /// @notice Returns the Endpoint contracts that have been registered via governance.
     function getEndpoints() external view returns (address[] memory);
 }
-
-

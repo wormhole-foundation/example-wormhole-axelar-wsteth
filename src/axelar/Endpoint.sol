@@ -44,5 +44,6 @@ abstract contract Endpoint is IEndpoint {
 
     function setEmitter(uint16 chainId, bytes32 bridgeContract) internal {
         emitters[chainId] = bridgeContract;
+        emit EmitterSet(chainId, bridgeContract);
     }
 }
