@@ -5,9 +5,10 @@ import {Ownable} from "@axelar-network/axelar-gmp-sdk-solidity/contracts/utils/O
 import {AxelarExecutable} from "@axelar-network/axelar-gmp-sdk-solidity/contracts/executable/AxelarExecutable.sol";
 import {IAxelarGasService} from "@axelar-network/axelar-gmp-sdk-solidity/contracts/interfaces/IAxelarGasService.sol";
 import {StringToAddress, AddressToString} from "@axelar-network/axelar-gmp-sdk-solidity/contracts/libs/AddressString.sol";
-import {Endpoint} from "./Endpoint.sol";
-import {IEndpointManager} from "./interfaces/IEndpointManager.sol";
-import {EndpointManagerMessage, SetEmitterMessage, NativeTokenTransfer} from "./Message.sol";
+import {IEndpointManager} from "@wormhole-foundation/native_token_transfer/interfaces/IEndpointManager.sol";
+import {Endpoint} from "@wormhole-foundation/native_token_transfer/Endpoint.sol";
+import {EndpointManagerMessage, NativeTokenTransfer} from "@wormhole-foundation/native_token_transfer/EndpointStructs.sol";
+import {SetEmitterMessage} from "./Structs.sol";
 
 contract AxelarEndpoint is Endpoint, AxelarExecutable, Ownable {
     IAxelarGasService public immutable gasService;
@@ -15,6 +16,8 @@ contract AxelarEndpoint is Endpoint, AxelarExecutable, Ownable {
     // These mappings are used to convert between chainId and chainName as Axelar accept chainName as string format
     mapping(uint16 => string) public idToAxelarChainIds;
     mapping(string => uint16) public axelarChainIdToId;
+
+    error UnsupportedMessageType();
 
     modifier onlySourceEmitter(
         string calldata sourceChain,
@@ -129,5 +132,9 @@ contract AxelarEndpoint is Endpoint, AxelarExecutable, Ownable {
     ) external virtual override {
         // Won't be implemented for Axelar.
         // Axelar has defined different function for receive a message from the relayer which is the function called `_execute` above.
+    }
+
+    function getEmitters() external view override returns (bytes32[] memory) {
+        // Not implemented
     }
 }

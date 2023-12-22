@@ -7,7 +7,8 @@ import {MockAxelarGateway} from "./axelar/mock/MockGateway.sol";
 import {MockManager} from "./axelar/mock/MockManager.sol";
 import {StringToBytes32, Bytes32ToString} from "@axelar-network/axelar-gmp-sdk-solidity/contracts/libs/Bytes32String.sol";
 import {AddressToString, StringToAddress} from "@axelar-network/axelar-gmp-sdk-solidity/contracts/libs/AddressString.sol";
-import {EndpointManagerMessage, SetEmitterMessage, NativeTokenTransfer} from "../src/axelar/Message.sol";
+import {EndpointManagerMessage, NativeTokenTransfer} from "@wormhole-foundation/native_token_transfer/EndpointStructs.sol";
+import {SetEmitterMessage} from "../src/axelar/Structs.sol";
 
 contract AxelarEndpointTest is Test {
     address constant GAS_SERVICE = address(1003);
