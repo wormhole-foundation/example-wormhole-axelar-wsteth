@@ -65,12 +65,11 @@ contract AxelarEndpoint is Endpoint, AxelarExecutable, Ownable {
             (EndpointManagerMessage)
         );
 
-        // This contract only supports message type 1 which is a NativeTokenTransfer.
+        // msgType 1: Send Token
+        // msgType 2: Set Emitter (destination contract address)
         if (message.msgType == 1) {
-            // do nothing
             return false;
         } else if (message.msgType == 2) {
-            // setEmitter
             SetEmitterMessage memory setEmitterMsg = abi.decode(
                 message.payload,
                 (SetEmitterMessage)
