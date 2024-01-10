@@ -4,6 +4,3 @@
 [submodule "lib/axelar-gmp-sdk-solidity"]
 	path = lib/axelar-gmp-sdk-solidity
 	url = https://github.com/axelarnetwork/axelar-gmp-sdk-solidity
-[submodule "lib/wormhole"]
-	path = lib/wormhole
-	url = https://github.com/wormhole-foundation/wormhole
