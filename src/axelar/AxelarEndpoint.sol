@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.22;
 
-import {Ownable} from "@axelar-network/axelar-gmp-sdk-solidity/contracts/utils/Ownable.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {AxelarExecutable} from "@axelar-network/axelar-gmp-sdk-solidity/contracts/executable/AxelarExecutable.sol";
 import {IAxelarGasService} from "@axelar-network/axelar-gmp-sdk-solidity/contracts/interfaces/IAxelarGasService.sol";
 import {StringToAddress, AddressToString} from "@axelar-network/axelar-gmp-sdk-solidity/contracts/libs/AddressString.sol";
@@ -10,7 +10,7 @@ import {Endpoint} from "@wormhole-foundation/native_token_transfer/Endpoint.sol"
 import {EndpointManagerMessage, NativeTokenTransfer} from "@wormhole-foundation/native_token_transfer/libraries/EndpointStructs.sol";
 import {SetEmitterMessage} from "./Structs.sol";
 
-contract AxelarEndpoint is Endpoint, AxelarExecutable, Ownable {
+contract AxelarEndpoint is Endpoint, AxelarExecutable {
     IAxelarGasService public immutable gasService;
 
     // These mappings are used to convert between chainId and chainName as Axelar accept chainName as string format
@@ -18,17 +18,17 @@ contract AxelarEndpoint is Endpoint, AxelarExecutable, Ownable {
     mapping(string => uint16) public axelarChainIdToId;
 
     error UnsupportedMessageType();
+    error InvalidSibling(uint16 chainId, bytes32 siblingAddress);
 
-    modifier onlySourceEmitter(
+    modifier onlySibling(
         string calldata sourceChain,
         string calldata sourceAddress
     ) {
         uint16 chainId = axelarChainIdToId[sourceChain];
         address _sourceAddress = StringToAddress.toAddress(sourceAddress);
-        require(
-            emitters[chainId] == bytes32(uint256(uint160(_sourceAddress))),
-            "Caller is not the source emitter"
-        );
+        if (siblings[chainId] != bytes32(uint256(uint160(_sourceAddress)))) {
+            revert InvalidSibling(chainId, siblings[chainId]);
+        }
         _;
     }
 
@@ -37,9 +37,8 @@ contract AxelarEndpoint is Endpoint, AxelarExecutable, Ownable {
         address _gasService,
         address _manager,
         address _owner
-    ) AxelarExecutable(_gateway) Ownable(_owner) {
+    ) AxelarExecutable(_gateway) Endpoint(_manager) Ownable(_owner) {
         gasService = IAxelarGasService(_gasService);
-        manager = _manager;
     }
 
     /**
@@ -75,7 +74,7 @@ contract AxelarEndpoint is Endpoint, AxelarExecutable, Ownable {
                 (SetEmitterMessage)
             );
 
-            setEmitter(setEmitterMsg.chainId, setEmitterMsg.bridgeContract);
+            setSibling(setEmitterMsg.chainId, setEmitterMsg.bridgeContract);
 
             return true;
         } else {
@@ -98,7 +97,7 @@ contract AxelarEndpoint is Endpoint, AxelarExecutable, Ownable {
             return;
         }
 
-        bytes32 destEmitter = emitters[recipientChain];
+        bytes32 destEmitter = siblings[recipientChain];
         string memory destinationContract = AddressToString.toString(
             address(uint160(uint256(destEmitter)))
         );
@@ -122,7 +121,7 @@ contract AxelarEndpoint is Endpoint, AxelarExecutable, Ownable {
         string calldata sourceChain,
         string calldata sourceAddress,
         bytes calldata payload
-    ) internal override onlySourceEmitter(sourceChain, sourceAddress) {
+    ) internal override onlySibling(sourceChain, sourceAddress) {
         IEndpointManager(manager).attestationReceived(payload);
     }
 
@@ -133,7 +132,10 @@ contract AxelarEndpoint is Endpoint, AxelarExecutable, Ownable {
         // Axelar has defined different function for receive a message from the relayer which is the function called `_execute` above.
     }
 
-    function getEmitters() external view override returns (bytes32[] memory) {
-        // Not implemented
+    function quoteDeliveryPrice(
+        uint16 targetChain
+    ) external view virtual override returns (uint256 nativePriceQuote) {
+        // Axelar doesn't support on-chain gas fee.
+        return 0;
     }
 }

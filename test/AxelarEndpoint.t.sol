@@ -65,6 +65,7 @@ contract AxelarEndpointTest is Test {
         );
 
         EndpointManagerMessage memory managerPayload = EndpointManagerMessage({
+            chainId: 1,
             sequence: 1,
             msgType: 2,
             payload: encodedSetEmitterPayload
