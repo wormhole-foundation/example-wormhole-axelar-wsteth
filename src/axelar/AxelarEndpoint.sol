@@ -7,7 +7,7 @@ import {IAxelarGasService} from "@axelar-network/axelar-gmp-sdk-solidity/contrac
 import {StringToAddress, AddressToString} from "@axelar-network/axelar-gmp-sdk-solidity/contracts/libs/AddressString.sol";
 import {IEndpointManager} from "@wormhole-foundation/native_token_transfer/interfaces/IEndpointManager.sol";
 import {Endpoint} from "@wormhole-foundation/native_token_transfer/Endpoint.sol";
-import {EndpointManagerMessage, NativeTokenTransfer} from "@wormhole-foundation/native_token_transfer/EndpointStructs.sol";
+import {EndpointManagerMessage, NativeTokenTransfer} from "@wormhole-foundation/native_token_transfer/libraries/EndpointStructs.sol";
 import {SetEmitterMessage} from "./Structs.sol";
 
 contract AxelarEndpoint is Endpoint, AxelarExecutable, Ownable {
