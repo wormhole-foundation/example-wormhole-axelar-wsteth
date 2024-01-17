@@ -13,3 +13,6 @@
 [submodule "lib/example-native-token-transfers"]
 	path = lib/example-native-token-transfers
 	url = https://github.com/wormhole-foundation/example-native-token-transfers
+[submodule "lib/wormhole-solidity-sdk"]
+	path = lib/wormhole-solidity-sdk
+	url = https://github.com/wormhole-foundation/wormhole-solidity-sdk
