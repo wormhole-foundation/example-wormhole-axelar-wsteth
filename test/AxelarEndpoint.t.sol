@@ -7,7 +7,7 @@ import {MockAxelarGateway} from "./axelar/mock/MockGateway.sol";
 import {MockManager} from "./axelar/mock/MockManager.sol";
 import {StringToBytes32, Bytes32ToString} from "@axelar-network/axelar-gmp-sdk-solidity/contracts/libs/Bytes32String.sol";
 import {AddressToString, StringToAddress} from "@axelar-network/axelar-gmp-sdk-solidity/contracts/libs/AddressString.sol";
-import {EndpointManagerMessage, NativeTokenTransfer} from "@wormhole-foundation/native_token_transfer/libraries/EndpointStructs.sol";
+import {EndpointStructs} from "@wormhole-foundation/native_token_transfer/libraries/EndpointStructs.sol";
 import {SetEmitterMessage} from "../src/axelar/Structs.sol";
 
 contract AxelarEndpointTest is Test {
@@ -64,7 +64,7 @@ contract AxelarEndpointTest is Test {
             setEmitterPayload.bridgeContract
         );
 
-        EndpointManagerMessage memory managerPayload = EndpointManagerMessage({
+        EndpointStructs.EndpointManagerMessage memory managerPayload = EndpointStructs.EndpointManagerMessage({
             chainId: 1,
             sequence: 1,
             msgType: 2,
