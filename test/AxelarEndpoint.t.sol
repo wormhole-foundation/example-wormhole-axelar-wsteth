@@ -31,7 +31,7 @@ contract AxelarEndpointTest is Test {
 
     function test_setAxelarChainId() public {
         vm.prank(OWNER);
-        endpoint.setAxelarChainId(1, "chain1");
+        endpoint.setAxelarChainId(1, "chain1", "0x1234");
         assertEq(endpoint.idToAxelarChainIds(1), "chain1");
         assertEq(endpoint.axelarChainIdToId("chain1"), 1);
     }
@@ -47,34 +47,8 @@ contract AxelarEndpointTest is Test {
 
     function test_execute_callerIsValidSourceEmitter() public {
         vm.prank(OWNER);
-        endpoint.setAxelarChainId(1, "sourceChain1");
-
         address SOURCE_CONTRACT = address(11111);
-        bytes32 bytes32SourceContract = bytes32(
-            uint256(uint160(SOURCE_CONTRACT))
-        );
-
-        SetEmitterMessage memory setEmitterPayload = SetEmitterMessage({
-            chainId: 1,
-            bridgeContract: bytes32SourceContract
-        });
-
-        bytes memory encodedSetEmitterPayload = abi.encode(
-            setEmitterPayload.chainId,
-            setEmitterPayload.bridgeContract
-        );
-
-        EndpointStructs.EndpointManagerMessage memory managerPayload = EndpointStructs.EndpointManagerMessage({
-            chainId: 1,
-            sequence: 1,
-            msgType: 2,
-            payload: encodedSetEmitterPayload
-        });
-
-        bytes memory encodedManagerPayload = abi.encode(managerPayload);
-
-        vm.prank(address(mockManager));
-        endpoint.sendMessage(2, encodedManagerPayload);
+        endpoint.setAxelarChainId(1, "sourceChain1", AddressToString.toString(SOURCE_CONTRACT));
 
         endpoint.execute(
             "commandId",
