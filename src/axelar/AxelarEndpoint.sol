@@ -12,23 +12,31 @@ import {IEndpointManagerStandalone} from
 import {EndpointStandalone} from "@wormhole-foundation/native_token_transfer/EndpointStandalone.sol";
 import {EndpointStructs} from "@wormhole-foundation/native_token_transfer/libraries/EndpointStructs.sol";
 import {SetEmitterMessage} from "./Structs.sol";
+import {InterchainAddressTracker} from "@axelar-network/axelar-gmp-sdk-solidity/contracts/utils/InterchainAddressTracker.sol";
 
-contract AxelarEndpoint is EndpointStandalone, AxelarExecutable, Ownable {
+contract AxelarEndpoint is EndpointStandalone, AxelarExecutable, InterchainAddressTracker, Ownable {
     IAxelarGasService public immutable gasService;
 
-    // These mappings are used to convert between chainId and chainName as Axelar accept chainName as string format
-    mapping(uint16 => string) public idToAxelarChainIds;
-    mapping(string => uint16) public axelarChainIdToId;
+    // keccak256('AxelarEndpoint.Slot') - 1
+    bytes32 internal constant AXELAR_ENDPOINT_SLOT = 0x7b690f78e722b1536e4df559bd003eb9113b71df59901dd43b07ebc28ea586d8;
+
+    struct AxelarEndpointStorage {    
+        // These mappings are used to convert between chainId and chainName as Axelar accept chainName as string format
+        mapping(uint16 => string) idToAxelarChainIds;
+        mapping(string => uint16) axelarChainIdToId;
+    }
+
+
+    // Need to set this after testing for the actual gas limit on the destination chain.
+    uint256 constant EXECUTION_GAS_LIMIT = 100000;
 
     error UnsupportedMessageType();
-    error InvalidSibling(uint16 chainId, bytes32 siblingAddress);
+    error InvalidSibling(string sourceChain, string sourceAddress);
     error NotImplemented();
 
     modifier onlySibling(string calldata sourceChain, string calldata sourceAddress) {
-        uint16 chainId = axelarChainIdToId[sourceChain];
-        address _sourceAddress = StringToAddress.toAddress(sourceAddress);
-        if (getSibling(chainId) != bytes32(uint256(uint160(_sourceAddress)))) {
-            revert InvalidSibling(chainId, getSibling(chainId));
+        if (!isTrustedAddress(sourceChain, sourceAddress)) {
+            revert InvalidSibling(sourceChain, sourceAddress);
         }
         _;
     }
@@ -46,9 +54,11 @@ contract AxelarEndpoint is EndpointStandalone, AxelarExecutable, Ownable {
      * @param chainId The chainId of the chain. This is used to identify the chain in the EndpointManager.
      * @param chainName The chainName of the chain. This is used to identify the chain in the AxelarGateway.
      */
-    function setAxelarChainId(uint16 chainId, string calldata chainName) external onlyOwner {
-        idToAxelarChainIds[chainId] = chainName;
-        axelarChainIdToId[chainName] = chainId;
+    function setAxelarChainId(uint16 chainId, string calldata chainName, string calldata contractAddress) external onlyOwner {
+        AxelarEndpointStorage storage slot = _axelarEndpointSlot();
+        slot.idToAxelarChainIds[chainId] = chainName;
+        slot.axelarChainIdToId[chainName] = chainId;
+        _setTrustedAddress(chainName, contractAddress);
     }
 
     /**
@@ -79,9 +89,8 @@ contract AxelarEndpoint is EndpointStandalone, AxelarExecutable, Ownable {
             return;
         }
 
-        bytes32 destEmitter = getSibling(recipientChain);
-        string memory destinationContract = AddressToString.toString(address(uint160(uint256(destEmitter))));
-        string memory destinationChain = idToAxelarChainIds[recipientChain];
+        string memory destinationChain = _axelarEndpointSlot().idToAxelarChainIds[recipientChain];
+        string memory destinationContract = trustedAddress(destinationChain);
 
         gasService.payNativeGasForContractCall{value: msg.value}(
             address(this), destinationChain, destinationContract, payload, msg.sender
@@ -114,6 +123,29 @@ contract AxelarEndpoint is EndpointStandalone, AxelarExecutable, Ownable {
         returns (uint256 nativePriceQuote)
     {
         // Axelar doesn't support on-chain gas fee.
-        return 0;
+        return gasService.estimateGasFee(
+            _axelarEndpointSlot().idToAxelarChainIds[targetChain],
+            '',
+            '',
+            EXECUTION_GAS_LIMIT,
+            ''
+        );
+    }
+
+    function idToAxelarChainIds(uint16 chainId) external returns (string memory chainName) {
+        return _axelarEndpointSlot().idToAxelarChainIds[chainId];
+    }
+
+    function axelarChainIdToId(string calldata chainName) external returns (uint16 chainId) {
+        return _axelarEndpointSlot().axelarChainIdToId[chainName];
+    }
+
+    /**
+     * @notice Get the storage slot for the AxelarEndpointStorage struct
+     */
+    function _axelarEndpointSlot() private pure returns (AxelarEndpointStorage storage slot) {
+        assembly {
+            slot.slot := AXELAR_ENDPOINT_SLOT
+        }
     }
 }
