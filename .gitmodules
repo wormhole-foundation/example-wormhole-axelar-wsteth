@@ -16,3 +16,6 @@
 [submodule "lib/wormhole-solidity-sdk"]
 	path = lib/wormhole-solidity-sdk
 	url = https://github.com/wormhole-foundation/wormhole-solidity-sdk
+[submodule "lib/axelar-cgp-solidity"]
+	path = lib/axelar-cgp-solidity
+	url = https://github.com/axelarnetwork/axelar-cgp-solidity
