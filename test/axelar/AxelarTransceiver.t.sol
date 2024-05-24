@@ -105,7 +105,7 @@ contract AxelarTransceiverTest is Test {
     function testFail_transferTransceiverOwnershipNotManager() public {
         address newOwner = address(1020);
 
-        vm.prank(Owner);
+        vm.prank(OWNER);
         transceiver.transferTransceiverOwnership(newOwner);
     }
 }
