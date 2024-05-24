@@ -37,7 +37,6 @@ contract AxelarTransceiver is IAxelarTransceiver, AxelarExecutable, Managed, Upg
     }
 
     function _setup(bytes calldata params) internal override {
-
     }
 
     function contractId() external pure override returns (bytes32) {
@@ -104,7 +103,7 @@ contract AxelarTransceiver is IAxelarTransceiver, AxelarExecutable, Managed, Upg
     }
 
     /// @notice Transfers the ownership of the transceiver to a new address.
-    function transferTransceiverOwnership(address newOwner) external override virtual onlyOwner() {
+    function transferTransceiverOwnership(address newOwner) external override virtual onlyManager() {
         _transferOwnership(newOwner);
     }
 
