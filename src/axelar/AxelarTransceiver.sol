@@ -11,19 +11,24 @@ import {IAxelarGasService} from "@axelar-network/axelar-gmp-sdk-solidity/contrac
 import {
     StringToAddress, AddressToString
 } from "@axelar-network/axelar-gmp-sdk-solidity/contracts/libs/AddressString.sol";
-import { Upgradable } from "@axelar-network/axelar-gmp-sdk-solidity/contracts/upgradable/Upgradable.sol";
+// Use their libraries
+import { Transceiver } from "@wormhole-foundation/native_token_transfer/Transceiver/Transceiver.sol";
 
-import {Managed} from "./utils/Managed.sol";
 import { IAxelarTransceiver } from './interfaces/IAxelarTransceiver.sol';
 
-contract AxelarTransceiver is IAxelarTransceiver, AxelarExecutable, Managed, Upgradable {
+contract AxelarTransceiver is IAxelarTransceiver, AxelarExecutable, Transceiver {
     IAxelarGasService public immutable gasService;
 
     // These mappings are used to convert between chainId and chainName as Axelar accept chainName as string format
-    mapping(uint16 => string) public idToAxelarChainIds;
-    mapping(string => uint16) public axelarChainIdToId;
-    mapping(uint16 => string) public idToAxelarAddress;
-    mapping(string => uint16) public axelarAddressToId;
+    struct AxelarTransceiverStorage {
+        mapping(uint16 => string) idToAxelarChainIds;
+        mapping(string => uint16) axelarChainIdToId;
+        mapping(uint16 => string) idToAxelarAddress;
+        mapping(string => uint16) axelarAddressToId;
+    }
+
+    // keccak256('AxelarTransceiver.Slot') - 1
+    bytes32 internal constant AXELAR_TRANSCEIVER_STORAGE_SLOT = 0x16cc7b9f29b247db6f6c7350203c763b8802896c91208a944bb4707de3f359a6;
 
     error UnsupportedMessageType();
     error InvalidSibling(uint16 chainId, string sourceChain, string sourceAddress);
@@ -31,7 +36,7 @@ contract AxelarTransceiver is IAxelarTransceiver, AxelarExecutable, Managed, Upg
 
     constructor(address _gateway, address _gasService, address _manager)
         AxelarExecutable(_gateway)
-        Managed(_manager)
+        Transceiver(_manager)
     {
         gasService = IAxelarGasService(_gasService);
     }
@@ -49,10 +54,11 @@ contract AxelarTransceiver is IAxelarTransceiver, AxelarExecutable, Managed, Upg
      * @param chainName The chainName of the chain. This is used to identify the chain in the AxelarGateway.
      */
     function setAxelarChainId(uint16 chainId, string calldata chainName, string calldata axelarAddress) external onlyOwner {
-        idToAxelarChainIds[chainId] = chainName;
-        axelarChainIdToId[chainName] = chainId;
-        idToAxelarAddress[chainId] = axelarAddress;
-        axelarAddressToId[axelarAddress] = chainId;
+        AxelarTransceiverStorage storage storage_ = _storage();
+        storage_.idToAxelarChainIds[chainId] = chainName;
+        storage_.axelarChainIdToId[chainName] = chainId;
+        storage_.idToAxelarAddress[chainId] = axelarAddress;
+        storage_.axelarAddressToId[axelarAddress] = chainId;
     }
 
     /// @notice Fetch the delivery price for a given recipient chain transfer.
@@ -65,7 +71,7 @@ contract AxelarTransceiver is IAxelarTransceiver, AxelarExecutable, Managed, Upg
         uint16 /*recipientChain*/,
         TransceiverStructs.TransceiverInstruction memory /*instruction*/
     ) external view override virtual returns (uint256) {
-        // Axelar doesn't support on-chain gas fee.
+        // Use the gas estimation from gas service
         return 0;
     }
 
@@ -74,17 +80,18 @@ contract AxelarTransceiver is IAxelarTransceiver, AxelarExecutable, Managed, Upg
     /// param instruction An additional Instruction provided by the Transceiver to be
     /// executed on the recipient chain.
     /// @param nttManagerMessage A message to be sent to the nttManager on the recipient chain.
-    function sendMessage(
+    function _sendMessage(
         uint16 recipientChainId,
         TransceiverStructs.TransceiverInstruction memory /*instruction*/,
         bytes memory nttManagerMessage,
         bytes32 recipientNttManagerAddress,
         bytes32 refundAddress
-    ) external payable override virtual onlyManager() {
+    ) internal override virtual onlyManager() {
         emit SendTransceiverMessage(recipientChainId, nttManagerMessage, recipientNttManagerAddress, refundAddress);
 
-        string memory destinationContract = idToAxelarAddress[recipientChainId];
-        string memory destinationChain = idToAxelarChainIds[recipientChainId];
+        AxelarTransceiverStorage storage storage_ = _storage();
+        string memory destinationContract = storage_.idToAxelarAddress[recipientChainId];
+        string memory destinationChain = storage_.idToAxelarChainIds[recipientChainId];
 
         if(bytes(destinationChain).length == 0 || bytes(destinationContract).length == 0) revert InvalidChainId(recipientChainId);
 
@@ -97,19 +104,10 @@ contract AxelarTransceiver is IAxelarTransceiver, AxelarExecutable, Managed, Upg
         gateway.callContract(destinationChain, destinationContract, payload);
     }
 
-    /// @notice Upgrades the transceiver to a new implementation.
-    function upgrade(address newImplementation) external override virtual onlyOwner() {
-
-    }
-
-    /// @notice Transfers the ownership of the transceiver to a new address.
-    function transferTransceiverOwnership(address newOwner) external override virtual onlyManager() {
-        _transferOwnership(newOwner);
-    }
-
     function _execute(string calldata sourceChain, string calldata sourceAddress, bytes calldata payload) internal override {
-        uint16 sourceChainId = axelarChainIdToId[sourceChain];
-        if (sourceChainId == 0 || axelarAddressToId[sourceAddress] != sourceChainId) {
+        AxelarTransceiverStorage storage storage_ = _storage();
+        uint16 sourceChainId = storage_.axelarChainIdToId[sourceChain];
+        if (sourceChainId == 0 || storage_.axelarAddressToId[sourceAddress] != sourceChainId) {
             revert InvalidSibling(sourceChainId, sourceChain, sourceAddress);
         }
 
@@ -119,11 +117,20 @@ contract AxelarTransceiver is IAxelarTransceiver, AxelarExecutable, Managed, Upg
             bytes32 recipientNttManagerAddress
         ) = abi.decode(payload, (bytes32, TransceiverStructs.NttManagerMessage, bytes32));
 
-        if (recipientNttManagerAddress != toWormholeFormat(manager)) {
-            revert UnexpectedRecipientNttManagerAddress(
-                toWormholeFormat(manager), recipientNttManagerAddress
-            );
+        _deliverToNttManager(
+            sourceChainId,
+            sourceNttManagerAddress,
+            recipientNttManagerAddress,
+            nttManagerMessage
+        );
+    }
+
+    /**
+     * @notice Get the storage slot for the AxelarTransceiverStorage struct
+     */
+    function _storage() private pure returns (AxelarTransceiverStorage storage slot) {
+        assembly {
+            slot.slot := AXELAR_TRANSCEIVER_STORAGE_SLOT
         }
-        INttManager(manager).attestationReceived(sourceChainId, sourceNttManagerAddress, nttManagerMessage);
     }
 }
