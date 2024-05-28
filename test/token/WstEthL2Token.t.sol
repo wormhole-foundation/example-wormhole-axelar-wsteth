@@ -8,11 +8,11 @@ import {Upgrades} from "script/lib/Upgrades.sol";
 import {DefenderOptions} from "@openzeppelin/foundry-upgrades/Options.sol";
 import {WstEthL2Token} from "src/token/WstEthL2Token.sol";
 import {WstEthL2TokenHarness} from "test/token/WstEthL2TokenHarness.sol";
-import {WstEthL2TokenFake} from "test/token/WstEthL2TokenFake.sol";
+import {WstEthL2TokenV2Fake} from "test/token/WstEthL2TokenV2Fake.sol";
 import {OwnableUpgradeable} from "openzeppelin-contracts-upgradeable/contracts/access/OwnableUpgradeable.sol";
 
-contract WstEthL2Token is Test {
-    WTokenHarness token;
+contract WstEthL2TokenTest is Test {
+    WstEthL2TokenHarness token;
     address minter = makeAddr("NTT");
     address governance = makeAddr("Governance");
     uint256 MAX_INT = 2**256 - 1;
@@ -29,23 +29,6 @@ contract WstEthL2Token is Test {
 
         token = WstEthL2TokenHarness(proxy);
         vm.label(address(token), "WstEthL2Token");
-    }
-
-    function calculateDomainSeparator(
-        address _token,
-        string memory _name
-    ) public view returns (bytes32) {
-        return keccak256(
-            abi.encode(
-                keccak256(
-                    "EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"
-                ),
-                keccak256(bytes(_name)),
-                keccak256(bytes("1")),
-                block.chainid,
-                _token
-            )
-        );
     }
 
     // This internal method supplies options to `Upgrades.upgradeProxy`. For more information, see documentation in Options.sol
@@ -81,9 +64,6 @@ contract Initialize is WstEthL2TokenTest {
 
         assertEq(token.symbol(), _symbol);
         assertEq(token.name(), _name);
-
-        // verify that the domain separator is set up correctly
-        assertEq(token.DOMAIN_SEPARATOR(), calculateDomainSeparator(address(token), _name));
 
         // Current balance is 0
         assertEq(token.totalSupply(), 0);
@@ -209,7 +189,7 @@ contract Initialize is WstEthL2TokenTest {
         // Ensure we can exercise some new functionality included in the upgrade
         vm.prank(_minter);
         vm.expectEmit();
-        emit WTokenV2Fake.FakeStateVarSet(_initialValue, _nextValue);
+        emit WstEthL2TokenV2Fake.FakeStateVarSet(_initialValue, _nextValue);
         _tokenV2.setFakeStateVar(_nextValue);
         assertEq(_tokenV2.fakeStateVar(), _nextValue);
 
@@ -239,7 +219,6 @@ contract Mint is WstEthL2TokenTest {
         token.mint(_account, _amount);
 
         assertEq(token.balanceOf(_account), _amount);
-        assertEq(token.delegates(_account), _account);
     }
 
     function testFuzz_RevertIf_CalledByNonMinterAddress(

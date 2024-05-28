@@ -6,7 +6,7 @@ import {WstEthL2Token} from "src/token/WstEthL2Token.sol";
 /// @dev This is a "fake" version 2 of the WstEthL2Token, used only for testing that the upgrade functionality is
 /// behaving as expected.
 /// @custom:oz-upgrades-from WstEthL2Token
-contract WstEthL2TokenFake is WstEthL2Token {
+contract WstEthL2TokenV2Fake is WstEthL2Token {
     event FakeStateVarSet(uint256 oldValue, uint256 newValue);
 
     uint256 public fakeStateVar;
