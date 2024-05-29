@@ -32,7 +32,7 @@ contract WstEthL2TokenTest is Test {
     }
 
     // This internal method supplies options to `Upgrades.upgradeProxy`. For more information, see documentation in Options.sol
-    function _upgradeProxyOpts() public view returns (Options memory) {
+    function _upgradeProxyOpts() public returns (Options memory) {
         return Options({
             unsafeSkipAllChecks: vm.envOr("SKIP_SAFETY_CHECK_IN_UPGRADE_TEST", false),
             referenceContract: "",
