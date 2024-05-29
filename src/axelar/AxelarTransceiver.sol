@@ -54,11 +54,11 @@ contract AxelarTransceiver is IAxelarTransceiver, AxelarExecutable, Transceiver 
      * @param chainName The chainName of the chain. This is used to identify the chain in the AxelarGateway.
      */
     function setAxelarChainId(uint16 chainId, string calldata chainName, string calldata axelarAddress) external onlyOwner {
-        AxelarTransceiverStorage storage storage_ = _storage();
-        storage_.idToAxelarChainIds[chainId] = chainName;
-        storage_.axelarChainIdToId[chainName] = chainId;
-        storage_.idToAxelarAddress[chainId] = axelarAddress;
-        storage_.axelarAddressToId[axelarAddress] = chainId;
+        AxelarTransceiverStorage storage slot = _storage();
+        slot.idToAxelarChainIds[chainId] = chainName;
+        slot.axelarChainIdToId[chainName] = chainId;
+        slot.idToAxelarAddress[chainId] = axelarAddress;
+        slot.axelarAddressToId[axelarAddress] = chainId;
     }
 
     /// @notice Fetch the delivery price for a given recipient chain transfer.
@@ -89,9 +89,9 @@ contract AxelarTransceiver is IAxelarTransceiver, AxelarExecutable, Transceiver 
     ) internal override virtual onlyManager() {
         emit SendTransceiverMessage(recipientChainId, nttManagerMessage, recipientNttManagerAddress, refundAddress);
 
-        AxelarTransceiverStorage storage storage_ = _storage();
-        string memory destinationContract = storage_.idToAxelarAddress[recipientChainId];
-        string memory destinationChain = storage_.idToAxelarChainIds[recipientChainId];
+        AxelarTransceiverStorage storage slot = _storage();
+        string memory destinationContract = slot.idToAxelarAddress[recipientChainId];
+        string memory destinationChain = slot.idToAxelarChainIds[recipientChainId];
 
         if(bytes(destinationChain).length == 0 || bytes(destinationContract).length == 0) revert InvalidChainId(recipientChainId);
 
@@ -105,9 +105,9 @@ contract AxelarTransceiver is IAxelarTransceiver, AxelarExecutable, Transceiver 
     }
 
     function _execute(string calldata sourceChain, string calldata sourceAddress, bytes calldata payload) internal override {
-        AxelarTransceiverStorage storage storage_ = _storage();
-        uint16 sourceChainId = storage_.axelarChainIdToId[sourceChain];
-        if (sourceChainId == 0 || storage_.axelarAddressToId[sourceAddress] != sourceChainId) {
+        AxelarTransceiverStorage storage slot = _storage();
+        uint16 sourceChainId = slot.axelarChainIdToId[sourceChain];
+        if (sourceChainId == 0 || slot.axelarAddressToId[sourceAddress] != sourceChainId) {
             revert InvalidSibling(sourceChainId, sourceChain, sourceAddress);
         }
 
