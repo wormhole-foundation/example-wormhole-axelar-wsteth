@@ -57,7 +57,7 @@ contract AxelarTransceiver is IAxelarTransceiver, AxelarGMPExecutable, Transceiv
     }
 
     /// @notice Fetch the delivery price for a given recipient chain transfer.
-    /// param recipientChain The Wormhole chain ID of the target chain.
+    /// @param recipientChainId The Wormhole chain ID of the target chain.
     /// param instruction An additional Instruction provided by the Transceiver to be
     ///        executed on the recipient chain.
     /// @return deliveryPrice The cost of delivering a message to the recipient chain,
@@ -86,8 +86,6 @@ contract AxelarTransceiver is IAxelarTransceiver, AxelarGMPExecutable, Transceiv
         TransceiverStructs.TransceiverInstruction memory /*transceiverInstruction*/,
         bytes memory nttManagerMessage
     ) internal override virtual onlyNttManager() {
-        emit SendTransceiverMessage(recipientChainId, nttManagerMessage, recipientNttManagerAddress, refundAddress);
-
         AxelarTransceiverStorage storage slot = _storage();
         string memory destinationContract = slot.idToTransceiverAddress[recipientChainId];
         string memory destinationChain = slot.idToAxelarChainId[recipientChainId];
@@ -96,8 +94,14 @@ contract AxelarTransceiver is IAxelarTransceiver, AxelarGMPExecutable, Transceiv
 
         bytes memory payload = abi.encode(nttManager, nttManagerMessage, recipientNttManagerAddress);
 
-        gasService.payNativeGasForContractCall{value: deliveryPayment}(
-            address(this), destinationChain, destinationContract, payload, fromWormholeFormat(refundAddress)
+        _callContract(destinationChain, destinationContract, payload, fromWormholeFormat(refundAddress), deliveryPayment);
+
+        emit SendTransceiverMessage(recipientChainId, nttManagerMessage, recipientNttManagerAddress, refundAddress);
+    }
+
+    function _callContract(string memory destinationChain, string memory destinationContract, bytes memory payload, address refundAddress, uint256 deliveryPayment) internal virtual {
+        gasService.payGas{value: deliveryPayment}(
+           address(this), destinationChain, destinationContract, payload, 0, false, refundAddress, bytes('')
         );
 
         gateway().callContract(destinationChain, destinationContract, payload);
