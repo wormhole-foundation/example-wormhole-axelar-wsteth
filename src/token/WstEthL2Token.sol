@@ -1,16 +1,25 @@
 // SPDX-License-Identifier: Apache 2
 pragma solidity >=0.8.8 <0.9.0;
 
-import {OwnableUpgradeable} from "openzeppelin-contracts-upgradeable/contracts/access/OwnableUpgradeable.sol";
-import {ERC20Upgradeable} from "openzeppelin-contracts-upgradeable/contracts/token/ERC20/ERC20Upgradeable.sol";
+import {OwnableUpgradeable} from
+    "openzeppelin-contracts-upgradeable/contracts/access/OwnableUpgradeable.sol";
+import {ERC20Upgradeable} from
+    "openzeppelin-contracts-upgradeable/contracts/token/ERC20/ERC20Upgradeable.sol";
 import {ERC20BurnableUpgradeable} from
     "openzeppelin-contracts-upgradeable/contracts/token/ERC20/extensions/ERC20BurnableUpgradeable.sol";
-import {UUPSUpgradeable} from "openzeppelin-contracts-upgradeable/contracts/proxy/utils/UUPSUpgradeable.sol";
+import {UUPSUpgradeable} from
+    "openzeppelin-contracts-upgradeable/contracts/proxy/utils/UUPSUpgradeable.sol";
 import {INttToken} from "@wormhole-foundation/native_token_transfer/interfaces/INttToken.sol";
 
 /// @title WstEthL2Token
 /// @notice A UUPS upgradeable token with access controlled minting and burning.
-contract WstEthL2Token is INttToken, UUPSUpgradeable, ERC20Upgradeable, ERC20BurnableUpgradeable, OwnableUpgradeable {
+contract WstEthL2Token is
+    INttToken,
+    UUPSUpgradeable,
+    ERC20Upgradeable,
+    ERC20BurnableUpgradeable,
+    OwnableUpgradeable
+{
     // =============== Storage ==============================================================
 
     struct MinterStorage {
@@ -61,7 +70,11 @@ contract WstEthL2Token is INttToken, UUPSUpgradeable, ERC20Upgradeable, ERC20Bur
 
     /// @notice A one-time configuration method meant to be called immediately upon the deployment of `WstEthL2Token`. It sets
     /// up the token's name, symbol, and owner
-    function initialize(string memory _name, string memory _symbol, address _owner) external initializer {
+    function initialize(
+        string memory _name,
+        string memory _symbol,
+        address _owner
+    ) external initializer {
         // OpenZeppelin upgradeable contracts documentation says:
         //
         // "Use with multiple inheritance requires special care. Initializer
