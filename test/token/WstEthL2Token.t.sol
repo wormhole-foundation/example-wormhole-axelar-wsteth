@@ -9,21 +9,20 @@ import {DefenderOptions} from "@openzeppelin/foundry-upgrades/Options.sol";
 import {WstEthL2Token} from "src/token/WstEthL2Token.sol";
 import {WstEthL2TokenHarness} from "test/token/WstEthL2TokenHarness.sol";
 import {WstEthL2TokenV2Fake} from "test/token/WstEthL2TokenV2Fake.sol";
-import {OwnableUpgradeable} from "openzeppelin-contracts-upgradeable/contracts/access/OwnableUpgradeable.sol";
+import {OwnableUpgradeable} from
+    "openzeppelin-contracts-upgradeable/contracts/access/OwnableUpgradeable.sol";
 
 contract WstEthL2TokenTest is Test {
     WstEthL2TokenHarness token;
     address minter = makeAddr("NTT");
     address governance = makeAddr("Governance");
-    uint256 MAX_INT = 2**256 - 1;
+    uint256 MAX_INT = 2 ** 256 - 1;
 
     function setUp() public virtual {
         address proxy = Upgrades.deployUUPSProxy(
             "out/ERC1967Proxy.sol/ERC1967Proxy.json",
             "WstEthL2TokenHarness.sol",
-            abi.encodeCall(
-                WstEthL2Token.initialize, ("Wrapped Staked Eth", "wstEth", governance)
-            )
+            abi.encodeCall(WstEthL2Token.initialize, ("Wrapped Staked Eth", "wstEth", governance))
         );
         vm.label(proxy, "Proxy");
 
@@ -55,9 +54,7 @@ contract Initialize is WstEthL2TokenTest {
         address proxy = Upgrades.deployUUPSProxy(
             "out/ERC1967Proxy.sol/ERC1967Proxy.json",
             "WstEthL2TokenHarness.sol",
-            abi.encodeCall(
-                WstEthL2Token.initialize, (_name, _symbol, governance)
-            )
+            abi.encodeCall(WstEthL2Token.initialize, (_name, _symbol, governance))
         );
         vm.label(proxy, "Proxy");
 
@@ -126,12 +123,7 @@ contract Initialize is WstEthL2TokenTest {
     function testFuzz_RevertIf_NonMinter(address _caller, uint256 _amount) public {
         vm.assume(_caller != minter);
 
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                WstEthL2Token.UnauthorizedAccount.selector,
-                _caller
-            )
-        );
+        vm.expectRevert(abi.encodeWithSelector(WstEthL2Token.UnauthorizedAccount.selector, _caller));
         vm.prank(_caller);
         token.mint(_caller, _amount);
     }
@@ -140,10 +132,7 @@ contract Initialize is WstEthL2TokenTest {
         vm.assume(_caller != minter && _caller != governance);
 
         vm.expectRevert(
-            abi.encodeWithSelector(
-                OwnableUpgradeable.OwnableUnauthorizedAccount.selector,
-                _caller
-            )
+            abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, _caller)
         );
         vm.prank(_caller);
         token.setMinter(_caller);
@@ -199,9 +188,7 @@ contract Initialize is WstEthL2TokenTest {
         // Ensure the role ACL applied to the new method works
         address _notMinter = address(uint160(uint256(keccak256(abi.encode(_minter)))));
         vm.expectRevert(
-            abi.encodeWithSelector(
-                WstEthL2Token.UnauthorizedAccount.selector, _notMinter
-            )
+            abi.encodeWithSelector(WstEthL2Token.UnauthorizedAccount.selector, _notMinter)
         );
         vm.prank(_notMinter);
         token.mint(_notMinter, _mintAmount);
@@ -231,12 +218,7 @@ contract Mint is WstEthL2TokenTest {
         vm.assume(_caller != minter);
         _mintAmount = bound(_mintAmount, 0, MAX_INT);
 
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                WstEthL2Token.UnauthorizedAccount.selector,
-                _caller
-            )
-        );
+        vm.expectRevert(abi.encodeWithSelector(WstEthL2Token.UnauthorizedAccount.selector, _caller));
         vm.prank(_caller);
         token.mint(_caller, _mintAmount);
     }
@@ -269,12 +251,7 @@ contract Burn is WstEthL2TokenTest {
         vm.prank(minter);
         token.mint(minter, _burnAmount);
 
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                WstEthL2Token.UnauthorizedAccount.selector,
-                _caller
-            )
-        );
+        vm.expectRevert(abi.encodeWithSelector(WstEthL2Token.UnauthorizedAccount.selector, _caller));
         vm.prank(_caller);
         token.burn(_burnAmount);
     }
@@ -300,10 +277,7 @@ contract _AuthorizeUpgrade is WstEthL2TokenTest {
         vm.assume(_caller != governance);
 
         vm.expectRevert(
-            abi.encodeWithSelector(
-                OwnableUpgradeable.OwnableUnauthorizedAccount.selector,
-                _caller
-            )
+            abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, _caller)
         );
         vm.prank(_caller);
         token.exposed_authorizeUpgrade(_newImplementation);
