@@ -48,9 +48,8 @@ contract AxelarTransceiverTest is Test {
             SKIP_RATE_LIMITING
         ));
         manager = NttManager(address(new ERC1967Proxy(managerImplementation, '')));
-        AxelarTransceiver implementation = new AxelarTransceiver(address(gateway), address(gasService), address(manager));
-        AxelarTransceiverProxy proxy = new AxelarTransceiverProxy(address(implementation));
-        transceiver = AxelarTransceiver(address(proxy));
+        address implementation = address(new AxelarTransceiver(address(gateway), address(gasService), address(manager)));
+        transceiver = AxelarTransceiver(address(new ERC1967Proxy(implementation, '')));
         vm.prank(transceiver.owner());
         transceiver.transferOwnership(OWNER);
     }
