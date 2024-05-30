@@ -11,6 +11,7 @@ import {WstEthL2TokenHarness} from "test/token/WstEthL2TokenHarness.sol";
 import {WstEthL2TokenV2Fake} from "test/token/WstEthL2TokenV2Fake.sol";
 import {OwnableUpgradeable} from
     "openzeppelin-contracts-upgradeable/contracts/access/OwnableUpgradeable.sol";
+import {INttToken} from "@wormhole-foundation/native_token_transfer/interfaces/INttToken.sol";
 
 contract WstEthL2TokenTest is Test {
     WstEthL2TokenHarness token;
@@ -44,9 +45,9 @@ contract WstEthL2TokenTest is Test {
             defender: DefenderOptions(false, false, "", bytes32(""), "")
         });
     }
-}
 
-contract Initialize is WstEthL2TokenTest {
+    // Initialization and Upgrade tests
+
     function testFuzz_CorrectlyInitializesTheToken(
         string memory _name,
         string memory _symbol
@@ -110,7 +111,7 @@ contract Initialize is WstEthL2TokenTest {
         assertEq(token.owner(), _newOwner);
     }
 
-    // Revert if initialzied twice
+    // Revert if initialized twice
     function testFuzz_RevertIf_TheInitializerIsCalledTwice(
         string memory _name,
         string memory _symbol,
@@ -118,24 +119,6 @@ contract Initialize is WstEthL2TokenTest {
     ) public {
         vm.expectRevert(Initializable.InvalidInitialization.selector);
         token.initialize(_name, _symbol, _owner);
-    }
-
-    function testFuzz_RevertIf_NonMinter(address _caller, uint256 _amount) public {
-        vm.assume(_caller != minter);
-
-        vm.expectRevert(abi.encodeWithSelector(WstEthL2Token.UnauthorizedAccount.selector, _caller));
-        vm.prank(_caller);
-        token.mint(_caller, _amount);
-    }
-
-    function testFuzz_RevertIf_NonOwner(address _caller) public {
-        vm.assume(_caller != minter && _caller != governance);
-
-        vm.expectRevert(
-            abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, _caller)
-        );
-        vm.prank(_caller);
-        token.setMinter(_caller);
     }
 
     // We limit the fuzz runs of this test because it performs FFI actions to run the node script, which takes
@@ -187,9 +170,7 @@ contract Initialize is WstEthL2TokenTest {
 
         // Ensure the role ACL applied to the new method works
         address _notMinter = address(uint160(uint256(keccak256(abi.encode(_minter)))));
-        vm.expectRevert(
-            abi.encodeWithSelector(WstEthL2Token.UnauthorizedAccount.selector, _notMinter)
-        );
+        vm.expectRevert(abi.encodeWithSelector(INttToken.CallerNotMinter.selector, _notMinter));
         vm.prank(_notMinter);
         token.mint(_notMinter, _mintAmount);
 
@@ -199,72 +180,7 @@ contract Initialize is WstEthL2TokenTest {
         vm.expectRevert(Initializable.InvalidInitialization.selector);
         _tokenV2.initializeFakeV2(_nextValue);
     }
-}
 
-contract Mint is WstEthL2TokenTest {
-    function testFuzz_CorrectlyMintTokensForANewAddress(address _account, uint256 _amount) public {
-        _amount = bound(_amount, 0, MAX_INT);
-        vm.assume(_account != address(0));
-        vm.prank(minter);
-        token.mint(_account, _amount);
-
-        assertEq(token.balanceOf(_account), _amount);
-    }
-
-    function testFuzz_RevertIf_CalledByNonMinterAddress(
-        address _caller,
-        uint256 _mintAmount
-    ) public {
-        vm.assume(_caller != minter);
-        _mintAmount = bound(_mintAmount, 0, MAX_INT);
-
-        vm.expectRevert(abi.encodeWithSelector(WstEthL2Token.UnauthorizedAccount.selector, _caller));
-        vm.prank(_caller);
-        token.mint(_caller, _mintAmount);
-    }
-}
-
-contract Burn is WstEthL2TokenTest {
-    function testFuzz_CorrectlyBurnTokensForANewAddress(
-        uint256 _mintAmount,
-        uint256 _burnAmount
-    ) public {
-        _mintAmount = bound(_mintAmount, 0, MAX_INT);
-        _burnAmount = bound(_burnAmount, 0, MAX_INT);
-        vm.assume(_mintAmount >= _burnAmount);
-
-        vm.startPrank(minter);
-        token.mint(minter, _mintAmount);
-        token.burn(_burnAmount);
-        vm.stopPrank();
-
-        assertEq(token.totalSupply(), _mintAmount - _burnAmount);
-    }
-
-    function testFuzz_RevertIf_CalledByNonMinterAddress(
-        address _caller,
-        uint256 _burnAmount
-    ) public {
-        vm.assume(_caller != minter);
-        _burnAmount = bound(_burnAmount, 0, MAX_INT);
-
-        vm.prank(minter);
-        token.mint(minter, _burnAmount);
-
-        vm.expectRevert(abi.encodeWithSelector(WstEthL2Token.UnauthorizedAccount.selector, _caller));
-        vm.prank(_caller);
-        token.burn(_burnAmount);
-    }
-}
-
-contract BurnFrom is WstEthL2TokenTest {
-    function testFuzz_RevertIf_Called(address _burnFrom, uint256 _amount) public {
-        vm.expectRevert(WstEthL2Token.UnimplementedMethod.selector);
-        token.burnFrom(_burnFrom, _amount);
-    }
-}
-
-contract _AuthorizeUpgrade is WstEthL2TokenTest {
     function testFuzz_AuthorizeUpgradeForOwner(address _newImplementation) public {
         vm.prank(governance);
         token.exposed_authorizeUpgrade(_newImplementation);
@@ -281,5 +197,71 @@ contract _AuthorizeUpgrade is WstEthL2TokenTest {
         );
         vm.prank(_caller);
         token.exposed_authorizeUpgrade(_newImplementation);
+    }
+
+    // Mint/burn tests
+
+    function testFuzz_RevertIf_MintNonMinter(address _caller, uint256 _amount) public {
+        vm.assume(_caller != minter);
+
+        vm.expectRevert(abi.encodeWithSelector(INttToken.CallerNotMinter.selector, _caller));
+        vm.prank(_caller);
+        token.mint(_caller, _amount);
+    }
+
+    function testFuzz_RevertIf_NonOwner(address _caller) public {
+        vm.assume(_caller != governance);
+
+        vm.expectRevert(
+            abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, _caller)
+        );
+        vm.prank(_caller);
+        token.setMinter(_caller);
+    }
+
+    function testFuzz_CorrectlyMintTokensForANewAddress(address _account, uint256 _amount) public {
+        _amount = bound(_amount, 0, MAX_INT);
+        vm.assume(_account != address(0));
+        vm.prank(minter);
+        token.mint(_account, _amount);
+
+        assertEq(token.balanceOf(_account), _amount);
+    }
+
+    function testFuzz_CorrectlyBurnTokensForANewAddress(
+        uint256 _mintAmount,
+        uint256 _burnAmount
+    ) public {
+        _mintAmount = bound(_mintAmount, 0, MAX_INT);
+        _burnAmount = bound(_burnAmount, 0, _mintAmount);
+
+        vm.startPrank(minter);
+        token.mint(minter, _mintAmount);
+        token.burn(_burnAmount);
+        vm.stopPrank();
+
+        assertEq(token.totalSupply(), _mintAmount - _burnAmount);
+    }
+
+    function testFuzz_RevertIf_BurnCalledByNonMinterAddress(
+        address _caller,
+        uint256 _burnAmount
+    ) public {
+        vm.assume(_caller != minter);
+        _burnAmount = bound(_burnAmount, 0, MAX_INT);
+
+        vm.prank(minter);
+        token.mint(minter, _burnAmount);
+
+        vm.expectRevert(abi.encodeWithSelector(INttToken.CallerNotMinter.selector, _caller));
+        vm.prank(_caller);
+        token.burn(_burnAmount);
+    }
+
+    // BurnFrom test
+
+    function testFuzz_RevertIf_Called(address _burnFrom, uint256 _amount) public {
+        vm.expectRevert(WstEthL2Token.UnimplementedMethod.selector);
+        token.burnFrom(_burnFrom, _amount);
     }
 }

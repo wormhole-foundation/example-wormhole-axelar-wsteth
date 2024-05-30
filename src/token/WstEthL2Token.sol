@@ -40,11 +40,16 @@ contract WstEthL2Token is
     /// @notice A function to set the new minter for the tokens.
     /// @param newMinter The address to add as both a minter and burner.
     function setMinter(address newMinter) external onlyOwner {
+        if (newMinter == address(0)) {
+            revert InvalidMinterZeroAddress();
+        }
+        address previousMinter = _getMinterStorage()._minter;
         _getMinterStorage()._minter = newMinter;
+        emit NewMinter(previousMinter, newMinter);
     }
 
     /// @dev Returns the address of the current minter.
-    function minter() public view virtual returns (address) {
+    function minter() public view returns (address) {
         MinterStorage storage $ = _getMinterStorage();
         return $._minter;
     }
@@ -52,13 +57,10 @@ contract WstEthL2Token is
     /// @dev Throws if called by any account other than the minter.
     modifier onlyMinter() {
         if (minter() != _msgSender()) {
-            revert UnauthorizedAccount(_msgSender());
+            revert CallerNotMinter(_msgSender());
         }
         _;
     }
-
-    /// @dev The caller account is not authorized to perform an operation.
-    error UnauthorizedAccount(address account);
 
     /// @dev An error thrown when a method is not implemented.
     error UnimplementedMethod();
