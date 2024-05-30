@@ -8,21 +8,16 @@ import "wormhole-solidity-sdk/Utils.sol";
 
 import { TransceiverStructs } from "@wormhole-foundation/native_token_transfer/libraries/TransceiverStructs.sol";
 import { INttManager } from "@wormhole-foundation/native_token_transfer/interfaces/INttManager.sol";
+import { ERC1967Proxy } from "openzeppelin-contracts/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
-import {Proxy} from "@axelar-network/axelar-gmp-sdk-solidity/contracts/upgradable/Proxy.sol";
 import {IAxelarGasService} from "@axelar-network/axelar-gmp-sdk-solidity/contracts/interfaces/IAxelarGasService.sol";
 import {
     StringToAddress, AddressToString
 } from "@axelar-network/axelar-gmp-sdk-solidity/contracts/libs/AddressString.sol";
 import { Upgradable } from "@axelar-network/axelar-gmp-sdk-solidity/contracts/upgradable/Upgradable.sol";
 
-import {Managed} from "./utils/Managed.sol";
 import { IAxelarTransceiver } from './interfaces/IAxelarTransceiver.sol';
 
-contract AxelarTransceiverProxy is Proxy {
-    constructor(address implementationAddress, address owner, bytes memory setupParams) Proxy(implementationAddress, owner, setupParams) {}
-
-    function contractId() internal pure virtual override returns (bytes32) {
-        return keccak256(bytes('axelar-transceiver'));
-    }
+contract AxelarTransceiverProxy is ERC1967Proxy {
+    constructor(address implementationAddress) ERC1967Proxy(implementationAddress, bytes("")) {}
 }

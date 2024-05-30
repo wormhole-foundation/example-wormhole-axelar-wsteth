@@ -41,13 +41,6 @@ contract AxelarTransceiver is IAxelarTransceiver, AxelarExecutable, Transceiver 
         gasService = IAxelarGasService(_gasService);
     }
 
-    function _setup(bytes calldata params) internal override {
-    }
-
-    function contractId() external pure override returns (bytes32) {
-        return keccak256('axelar-transceiver');
-    }
-
     /**
      * Set the bridge manager contract address
      * @param chainId The chainId of the chain. This is used to identify the chain in the EndpointManager.
@@ -67,10 +60,10 @@ contract AxelarTransceiver is IAxelarTransceiver, AxelarExecutable, Transceiver 
     ///        executed on the recipient chain.
     /// @return deliveryPrice The cost of delivering a message to the recipient chain,
     ///         in this chain's native token.
-    function quoteDeliveryPrice(
+    function _quoteDeliveryPrice(
         uint16 /*recipientChain*/,
         TransceiverStructs.TransceiverInstruction memory /*instruction*/
-    ) external view override virtual returns (uint256) {
+    ) internal view override virtual returns (uint256) {
         // Use the gas estimation from gas service
         return 0;
     }
@@ -82,11 +75,13 @@ contract AxelarTransceiver is IAxelarTransceiver, AxelarExecutable, Transceiver 
     /// @param nttManagerMessage A message to be sent to the nttManager on the recipient chain.
     function _sendMessage(
         uint16 recipientChainId,
-        TransceiverStructs.TransceiverInstruction memory /*instruction*/,
-        bytes memory nttManagerMessage,
+        uint256 deliveryPayment,
+        address /*caller*/,
         bytes32 recipientNttManagerAddress,
-        bytes32 refundAddress
-    ) internal override virtual onlyManager() {
+        bytes32 refundAddress,
+        TransceiverStructs.TransceiverInstruction memory /*transceiverInstruction*/,
+        bytes memory nttManagerMessage
+    ) internal override virtual onlyNttManager() {
         emit SendTransceiverMessage(recipientChainId, nttManagerMessage, recipientNttManagerAddress, refundAddress);
 
         AxelarTransceiverStorage storage slot = _storage();
@@ -95,9 +90,9 @@ contract AxelarTransceiver is IAxelarTransceiver, AxelarExecutable, Transceiver 
 
         if(bytes(destinationChain).length == 0 || bytes(destinationContract).length == 0) revert InvalidChainId(recipientChainId);
 
-        bytes memory payload = abi.encode(manager, nttManagerMessage, recipientNttManagerAddress);
+        bytes memory payload = abi.encode(nttManager, nttManagerMessage, recipientNttManagerAddress);
 
-        gasService.payNativeGasForContractCall{value: msg.value}(
+        gasService.payNativeGasForContractCall{value: deliveryPayment}(
             address(this), destinationChain, destinationContract, payload, fromWormholeFormat(refundAddress)
         );
 

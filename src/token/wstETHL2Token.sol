@@ -18,9 +18,9 @@ contract wstETHL2Token is INTTToken, ERC20Burnable, Ownable {
 
     constructor(string memory name, string memory symbol, address minter, address owner)
         ERC20(name, symbol)
-        Ownable(owner)
     {
         _minter = minter;
+        _transferOwnership(owner);
     }
 
     function mint(address account, uint256 amount) external onlyMinter {

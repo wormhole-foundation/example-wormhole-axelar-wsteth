@@ -6,15 +6,24 @@ import "../../src/axelar/AxelarTransceiverProxy.sol";
 import "./mock/MockGateway.sol";
 import { MockAxelarGasService } from "./mock/MockGasService.sol";
 import { TransceiverStructs } from "@wormhole-foundation/native_token_transfer/libraries/TransceiverStructs.sol";
+import { NttManager } from "@wormhole-foundation/native_token_transfer/NttManager/NttManager.sol";
+import { INttManager } from "@wormhole-foundation/native_token_transfer/interfaces/INttManager.sol";
+import { IManagerBase } from "@wormhole-foundation/native_token_transfer/interfaces/IManagerBase.sol";
+import { ERC1967Proxy } from "openzeppelin-contracts/contracts/proxy/ERC1967/ERC1967Proxy.sol";
+
 
 import "forge-std/console.sol";
 import "forge-std/Test.sol";
 import "openzeppelin-contracts/contracts/access/Ownable.sol";
 
 
+
 contract AxelarTransceiverTest is Test {
-    address constant MANAGER = address(1003);
     address constant OWNER = address(1004);
+    address constant TOKEN = address(1005);
+
+    uint64 constant RATE_LIMIT_DURATION = 0;
+    bool constant SKIP_RATE_LIMITING = true;
 
     uint256 constant DEVNET_GUARDIAN_PK =
         0xcfb12303a19cde580bb4dd771639b0d26bc68353645571a8cff516ab2ee113a0;
@@ -22,6 +31,7 @@ contract AxelarTransceiverTest is Test {
     AxelarTransceiver transceiver;
     IAxelarGateway gateway;
     IAxelarGasService gasService;
+    NttManager manager;
 
     function setUp() public {
         string memory url = "https://ethereum-sepolia-rpc.publicnode.com";
@@ -29,9 +39,20 @@ contract AxelarTransceiverTest is Test {
 
         gateway = IAxelarGateway(new MockAxelarGateway());
         gasService = IAxelarGasService(address(new MockAxelarGasService()));
-        AxelarTransceiver implementation = new AxelarTransceiver(address(gateway), address(gasService), MANAGER);
-        AxelarTransceiverProxy proxy = new AxelarTransceiverProxy(address(implementation), OWNER, bytes(''));
+
+        address managerImplementation = address(new NttManager(        
+            TOKEN,
+            IManagerBase.Mode.LOCKING,
+            1,
+            RATE_LIMIT_DURATION,
+            SKIP_RATE_LIMITING
+        ));
+        manager = NttManager(address(new ERC1967Proxy(managerImplementation, '')));
+        AxelarTransceiver implementation = new AxelarTransceiver(address(gateway), address(gasService), address(manager));
+        AxelarTransceiverProxy proxy = new AxelarTransceiverProxy(address(implementation));
         transceiver = AxelarTransceiver(address(proxy));
+        vm.prank(transceiver.owner());
+        transceiver.transferOwnership(OWNER);
     }
 
     function test_setAxelarChainId() public {
@@ -66,7 +87,7 @@ contract AxelarTransceiverTest is Test {
 
         vm.prank(OWNER);
         transceiver.setAxelarChainId(chainId, chainName, axelarAddress);
-        vm.prank(MANAGER);
+        vm.prank(address(manager));
         transceiver.sendMessage(chainId, instruction, nttManagerMessage, recipientNttManagerAddress, refundAddress);
     }
 
@@ -91,14 +112,14 @@ contract AxelarTransceiverTest is Test {
         bytes32 refundAddress = bytes32(uint256(1011));
         TransceiverStructs.TransceiverInstruction memory instruction = TransceiverStructs.TransceiverInstruction(0, bytes(''));
 
-        vm.prank(MANAGER);
+        vm.prank(address(manager));
         transceiver.sendMessage(chainId, instruction, nttManagerMessage, recipientNttManagerAddress, refundAddress);
     }
 
     function test_transferTransceiverOwnership() public {
         address newOwner = address(1020);
 
-        vm.prank(MANAGER);
+        vm.prank(address(manager));
         transceiver.transferTransceiverOwnership(newOwner);
     }
 
