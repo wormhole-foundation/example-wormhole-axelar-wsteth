@@ -19,16 +19,15 @@ import { IAxelarTransceiver } from './interfaces/IAxelarTransceiver.sol';
 contract AxelarTransceiver is IAxelarTransceiver, AxelarGMPExecutable, Transceiver {
     IAxelarGasService public immutable gasService;
 
-    // These mappings are used to convert between chainId and chainName as Axelar accept chainName as string format
+    // These mappings are used to convert chainId and chainName between Wormhole and Axelar formats.
     struct AxelarTransceiverStorage {
         mapping(uint16 => string) idToAxelarChainIds;
         mapping(string => uint16) axelarChainIdToId;
         mapping(uint16 => string) idToAxelarAddress;
         mapping(string => uint16) axelarAddressToId;
     }
-
-    // keccak256('AxelarTransceiver.Slot') - 1
-    bytes32 internal constant AXELAR_TRANSCEIVER_STORAGE_SLOT = 0x16cc7b9f29b247db6f6c7350203c763b8802896c91208a944bb4707de3f359a6;
+    //keccak256(abi.encode(uint256(keccak256("openzeppelin.storage.AxelarTransceiver")) - 1)) & ~bytes32(uint256(0xff))
+    bytes32 internal constant AXELAR_TRANSCEIVER_STORAGE_SLOT = 0x6d72a7741b755e11bdb1cef6ed3f290bbe196e69da228a3ae322e5bc37ea7600;
 
     error UnsupportedMessageType();
     error InvalidSibling(uint16 chainId, string sourceChain, string sourceAddress);
