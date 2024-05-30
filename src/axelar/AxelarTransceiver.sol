@@ -21,7 +21,7 @@ contract AxelarTransceiver is IAxelarTransceiver, AxelarGMPExecutable, Transceiv
 
     // These mappings are used to convert chainId and chainName between Wormhole and Axelar formats.
     struct AxelarTransceiverStorage {
-        mapping(uint16 => string) idToAxelarChainIds;
+        mapping(uint16 => string) idToAxelarChainId;
         mapping(string => uint16) axelarChainIdToId;
         mapping(uint16 => string) idToAxelarAddress;
         mapping(string => uint16) axelarAddressToId;
@@ -47,7 +47,7 @@ contract AxelarTransceiver is IAxelarTransceiver, AxelarGMPExecutable, Transceiv
      */
     function setAxelarChainId(uint16 chainId, string calldata chainName, string calldata axelarAddress) external onlyOwner {
         AxelarTransceiverStorage storage slot = _storage();
-        slot.idToAxelarChainIds[chainId] = chainName;
+        slot.idToAxelarChainId[chainId] = chainName;
         slot.axelarChainIdToId[chainName] = chainId;
         slot.idToAxelarAddress[chainId] = axelarAddress;
         slot.axelarAddressToId[axelarAddress] = chainId;
@@ -85,7 +85,7 @@ contract AxelarTransceiver is IAxelarTransceiver, AxelarGMPExecutable, Transceiv
 
         AxelarTransceiverStorage storage slot = _storage();
         string memory destinationContract = slot.idToAxelarAddress[recipientChainId];
-        string memory destinationChain = slot.idToAxelarChainIds[recipientChainId];
+        string memory destinationChain = slot.idToAxelarChainId[recipientChainId];
 
         if (bytes(destinationChain).length == 0 || bytes(destinationContract).length == 0) revert InvalidChainId(recipientChainId);
 
