@@ -6,7 +6,7 @@ import "wormhole-solidity-sdk/Utils.sol";
 import { TransceiverStructs } from "@wormhole-foundation/native_token_transfer/libraries/TransceiverStructs.sol";
 import { INttManager } from "@wormhole-foundation/native_token_transfer/interfaces/INttManager.sol";
 
-import {AxelarExecutable} from "@axelar-network/axelar-gmp-sdk-solidity/contracts/executable/AxelarExecutable.sol";
+import {AxelarGMPExecutable} from "@axelar-network/axelar-gmp-sdk-solidity/contracts/executable/AxelarGMPExecutable.sol";
 import {IAxelarGasService} from "@axelar-network/axelar-gmp-sdk-solidity/contracts/interfaces/IAxelarGasService.sol";
 import {
     StringToAddress, AddressToString
@@ -16,7 +16,7 @@ import { Transceiver } from "@wormhole-foundation/native_token_transfer/Transcei
 
 import { IAxelarTransceiver } from './interfaces/IAxelarTransceiver.sol';
 
-contract AxelarTransceiver is IAxelarTransceiver, AxelarExecutable, Transceiver {
+contract AxelarTransceiver is IAxelarTransceiver, AxelarGMPExecutable, Transceiver {
     IAxelarGasService public immutable gasService;
 
     // These mappings are used to convert between chainId and chainName as Axelar accept chainName as string format
@@ -35,7 +35,7 @@ contract AxelarTransceiver is IAxelarTransceiver, AxelarExecutable, Transceiver 
     error NotImplemented();
 
     constructor(address _gateway, address _gasService, address _manager)
-        AxelarExecutable(_gateway)
+        AxelarGMPExecutable(_gateway)
         Transceiver(_manager)
     {
         gasService = IAxelarGasService(_gasService);
@@ -96,10 +96,15 @@ contract AxelarTransceiver is IAxelarTransceiver, AxelarExecutable, Transceiver 
             address(this), destinationChain, destinationContract, payload, fromWormholeFormat(refundAddress)
         );
 
-        gateway.callContract(destinationChain, destinationContract, payload);
+        gateway().callContract(destinationChain, destinationContract, payload);
     }
 
-    function _execute(string calldata sourceChain, string calldata sourceAddress, bytes calldata payload) internal override {
+    function _execute(
+        bytes32 /*commandId*/,
+        string calldata sourceChain, 
+        string calldata sourceAddress, 
+        bytes calldata payload
+    ) internal override {
         AxelarTransceiverStorage storage slot = _storage();
         uint16 sourceChainId = slot.axelarChainIdToId[sourceChain];
         if (sourceChainId == 0 || slot.axelarAddressToId[sourceAddress] != sourceChainId) {
