@@ -6,8 +6,8 @@ import "wormhole-solidity-sdk/Utils.sol";
 import { TransceiverStructs } from "@wormhole-foundation/native_token_transfer/libraries/TransceiverStructs.sol";
 import { INttManager } from "@wormhole-foundation/native_token_transfer/interfaces/INttManager.sol";
 
-import {AxelarGMPExecutable} from "@axelar-network/axelar-gmp-sdk-solidity/contracts/executable/AxelarGMPExecutable.sol";
-import {IAxelarGasService} from "@axelar-network/axelar-gmp-sdk-solidity/contracts/interfaces/IAxelarGasService.sol";
+import { AxelarGMPExecutable } from "@axelar-network/axelar-gmp-sdk-solidity/contracts/executable/AxelarGMPExecutable.sol";
+import { IAxelarGasService } from "@axelar-network/axelar-gmp-sdk-solidity/contracts/interfaces/IAxelarGasService.sol";
 import {
     StringToAddress, AddressToString
 } from "@axelar-network/axelar-gmp-sdk-solidity/contracts/libs/AddressString.sol";
@@ -88,7 +88,7 @@ contract AxelarTransceiver is IAxelarTransceiver, AxelarGMPExecutable, Transceiv
         string memory destinationContract = slot.idToAxelarAddress[recipientChainId];
         string memory destinationChain = slot.idToAxelarChainIds[recipientChainId];
 
-        if(bytes(destinationChain).length == 0 || bytes(destinationContract).length == 0) revert InvalidChainId(recipientChainId);
+        if (bytes(destinationChain).length == 0 || bytes(destinationContract).length == 0) revert InvalidChainId(recipientChainId);
 
         bytes memory payload = abi.encode(nttManager, nttManagerMessage, recipientNttManagerAddress);
 
