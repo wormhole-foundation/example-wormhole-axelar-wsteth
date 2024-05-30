@@ -23,11 +23,13 @@ contract AxelarTransceiver is IAxelarTransceiver, AxelarGMPExecutable, Transceiv
     struct AxelarTransceiverStorage {
         mapping(uint16 => string) idToAxelarChainId;
         mapping(string => uint16) axelarChainIdToId;
-        mapping(uint16 => string) idToAxelarAddress;
+        mapping(uint16 => string) idToTransceiverAddress;
         mapping(string => uint16) axelarAddressToId;
     }
     //keccak256(abi.encode(uint256(keccak256("openzeppelin.storage.AxelarTransceiver")) - 1)) & ~bytes32(uint256(0xff))
     bytes32 internal constant AXELAR_TRANSCEIVER_STORAGE_SLOT = 0x6d72a7741b755e11bdb1cef6ed3f290bbe196e69da228a3ae322e5bc37ea7600;
+
+    uint256 internal constant DESTINATION_EXECUTION_GAS_LIMIT = 200000;
 
     error UnsupportedMessageType();
     error InvalidSibling(uint16 chainId, string sourceChain, string sourceAddress);
@@ -44,13 +46,14 @@ contract AxelarTransceiver is IAxelarTransceiver, AxelarGMPExecutable, Transceiv
      * Set the bridge manager contract address
      * @param chainId The chainId of the chain. This is used to identify the chain in the EndpointManager.
      * @param chainName The chainName of the chain. This is used to identify the chain in the AxelarGateway.
+     * @param transceiverAddress The address of the tranceiver on the other chain, in the axelar accepted format.
      */
-    function setAxelarChainId(uint16 chainId, string calldata chainName, string calldata axelarAddress) external onlyOwner {
+    function setAxelarChainId(uint16 chainId, string calldata chainName, string calldata transceiverAddress) external onlyOwner {
         AxelarTransceiverStorage storage slot = _storage();
         slot.idToAxelarChainId[chainId] = chainName;
         slot.axelarChainIdToId[chainName] = chainId;
-        slot.idToAxelarAddress[chainId] = axelarAddress;
-        slot.axelarAddressToId[axelarAddress] = chainId;
+        slot.idToTransceiverAddress[chainId] = transceiverAddress;
+        slot.axelarAddressToId[transceiverAddress] = chainId;
     }
 
     /// @notice Fetch the delivery price for a given recipient chain transfer.
@@ -60,17 +63,19 @@ contract AxelarTransceiver is IAxelarTransceiver, AxelarGMPExecutable, Transceiv
     /// @return deliveryPrice The cost of delivering a message to the recipient chain,
     ///         in this chain's native token.
     function _quoteDeliveryPrice(
-        uint16 /*recipientChain*/,
+        uint16 recipientChainId,
         TransceiverStructs.TransceiverInstruction memory /*instruction*/
     ) internal view override virtual returns (uint256) {
         // Use the gas estimation from gas service
-        return 0;
+        AxelarTransceiverStorage storage slot = _storage();
+        return gasService.estimateGasFee(slot.idToAxelarChainId[recipientChainId], slot.idToTransceiverAddress[recipientChainId], bytes(''), DESTINATION_EXECUTION_GAS_LIMIT, bytes(''));
     }
 
     /// @dev Send a message to another chain.
     /// @param recipientChainId The Wormhole chain ID of the recipient.
-    /// param instruction An additional Instruction provided by the Transceiver to be
-    /// executed on the recipient chain.
+    /// @param deliveryPayment the amount of native tokens to be used as gas for delivery.
+    /// @param recipientNttManagerAddress the address of the NttManager to receive this message.
+    /// @param refundAddress the address to receive the gas refund if overpayed.
     /// @param nttManagerMessage A message to be sent to the nttManager on the recipient chain.
     function _sendMessage(
         uint16 recipientChainId,
@@ -84,7 +89,7 @@ contract AxelarTransceiver is IAxelarTransceiver, AxelarGMPExecutable, Transceiv
         emit SendTransceiverMessage(recipientChainId, nttManagerMessage, recipientNttManagerAddress, refundAddress);
 
         AxelarTransceiverStorage storage slot = _storage();
-        string memory destinationContract = slot.idToAxelarAddress[recipientChainId];
+        string memory destinationContract = slot.idToTransceiverAddress[recipientChainId];
         string memory destinationChain = slot.idToAxelarChainId[recipientChainId];
 
         if (bytes(destinationChain).length == 0 || bytes(destinationContract).length == 0) revert InvalidChainId(recipientChainId);
