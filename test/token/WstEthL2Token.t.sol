@@ -19,8 +19,8 @@ contract WstEthL2TokenTest is Test {
 
     function setUp() public virtual {
         address proxy = Upgrades.deployUUPSProxy(
-            "out/ERC1967/ERC1967Proxy.sol/ERC1967Proxy.json",
-            "WstEthL2Token.sol",
+            "out/ERC1967Proxy.sol/ERC1967Proxy.json",
+            "WstEthL2TokenHarness.sol",
             abi.encodeCall(
                 WstEthL2Token.initialize, ("Wrapped Staked Eth", "wstEth", governance)
             )
@@ -28,6 +28,8 @@ contract WstEthL2TokenTest is Test {
         vm.label(proxy, "Proxy");
 
         token = WstEthL2TokenHarness(proxy);
+        vm.prank(governance);
+        token.setMinter(minter);
         vm.label(address(token), "WstEthL2Token");
     }
 
@@ -51,8 +53,8 @@ contract Initialize is WstEthL2TokenTest {
         string memory _symbol
     ) public {
         address proxy = Upgrades.deployUUPSProxy(
-            "out/ERC1967/ERC1967Proxy.sol/ERC1967Proxy.json",
-            "WstEthL2TokenTokenHarness.sol",
+            "out/ERC1967Proxy.sol/ERC1967Proxy.json",
+            "WstEthL2TokenHarness.sol",
             abi.encodeCall(
                 WstEthL2Token.initialize, (_name, _symbol, governance)
             )
@@ -89,6 +91,7 @@ contract Initialize is WstEthL2TokenTest {
         token.mint(_newMinter, _amount);
         assertEq(token.minter(), _newMinter);
         assertEq(token.balanceOf(_newMinter), _amount);
+        vm.prank(_newMinter);
         token.burn(_amount);
         assertEq(token.minter(), _newMinter);
         assertEq(token.balanceOf(_newMinter), 0);
@@ -298,7 +301,7 @@ contract _AuthorizeUpgrade is WstEthL2TokenTest {
 
         vm.expectRevert(
             abi.encodeWithSelector(
-                WstEthL2Token.UnauthorizedAccount.selector,
+                OwnableUpgradeable.OwnableUnauthorizedAccount.selector,
                 _caller
             )
         );
