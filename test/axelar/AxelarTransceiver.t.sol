@@ -9,6 +9,7 @@ import { NttManager } from "@wormhole-foundation/native_token_transfer/NttManage
 import { INttManager } from "@wormhole-foundation/native_token_transfer/interfaces/INttManager.sol";
 import { IManagerBase } from "@wormhole-foundation/native_token_transfer/interfaces/IManagerBase.sol";
 import { ERC1967Proxy } from "openzeppelin-contracts/contracts/proxy/ERC1967/ERC1967Proxy.sol";
+import { wstETHL2Token } from "../../src/token/wstETHL2Token.sol";
 
 
 import "forge-std/console.sol";
@@ -39,18 +40,20 @@ contract AxelarTransceiverTest is Test {
         gateway = IAxelarGateway(new MockAxelarGateway());
         gasService = IAxelarGasService(address(new MockAxelarGasService()));
 
+        wstETHL2Token token = new wstETHL2Token("name", "symobl", OWNER, OWNER);
         address managerImplementation = address(new NttManager(        
-            TOKEN,
+            address(token),
             IManagerBase.Mode.LOCKING,
             1,
             RATE_LIMIT_DURATION,
             SKIP_RATE_LIMITING
         ));
         manager = NttManager(address(new ERC1967Proxy(managerImplementation, '')));
+        manager.initialize();
+        manager.transferOwnership(OWNER);
         address implementation = address(new AxelarTransceiver(address(gateway), address(gasService), address(manager)));
         transceiver = AxelarTransceiver(address(new ERC1967Proxy(implementation, '')));
-        vm.prank(transceiver.owner());
-        transceiver.transferOwnership(OWNER);
+        transceiver.initialize();
     }
 
     function test_setAxelarChainId() public {
