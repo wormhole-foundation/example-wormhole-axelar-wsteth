@@ -26,7 +26,7 @@ contract AxelarTransceiver is IAxelarTransceiver, AxelarGMPExecutable, Transceiv
         mapping(uint16 => string) idToTransceiverAddress;
         mapping(string => uint16) axelarAddressToId;
     }
-    //keccak256(abi.encode(uint256(keccak256("openzeppelin.storage.AxelarTransceiver")) - 1)) & ~bytes32(uint256(0xff))
+    // keccak256(abi.encode(uint256(keccak256("openzeppelin.storage.AxelarTransceiver")) - 1)) & ~bytes32(uint256(0xff))
     bytes32 internal constant AXELAR_TRANSCEIVER_STORAGE_SLOT = 0x6d72a7741b755e11bdb1cef6ed3f290bbe196e69da228a3ae322e5bc37ea7600;
 
     uint256 internal constant DESTINATION_EXECUTION_GAS_LIMIT = 200000;
