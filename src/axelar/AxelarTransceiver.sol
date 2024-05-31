@@ -24,7 +24,7 @@ contract AxelarTransceiver is IAxelarTransceiver, AxelarGMPExecutable, Transceiv
         mapping(uint16 => string) idToAxelarChainId;
         mapping(string => uint16) axelarChainIdToId;
         mapping(uint16 => string) idToTransceiverAddress;
-        mapping(string => uint16) axelarAddressToId;
+        mapping(string => uint16) transceiverAddressToId;
     }
     // keccak256(abi.encode(uint256(keccak256("openzeppelin.storage.AxelarTransceiver")) - 1)) & ~bytes32(uint256(0xff))
     bytes32 internal constant AXELAR_TRANSCEIVER_STORAGE_SLOT = 0x6d72a7741b755e11bdb1cef6ed3f290bbe196e69da228a3ae322e5bc37ea7600;
@@ -54,7 +54,7 @@ contract AxelarTransceiver is IAxelarTransceiver, AxelarGMPExecutable, Transceiv
         slot.idToAxelarChainId[chainId] = chainName;
         slot.axelarChainIdToId[chainName] = chainId;
         slot.idToTransceiverAddress[chainId] = transceiverAddress;
-        slot.axelarAddressToId[transceiverAddress] = chainId;
+        slot.transceiverAddressToId[transceiverAddress] = chainId;
     }
 
     /// @notice Fetch the delivery price for a given recipient chain transfer.
@@ -116,7 +116,7 @@ contract AxelarTransceiver is IAxelarTransceiver, AxelarGMPExecutable, Transceiv
     ) internal override {
         AxelarTransceiverStorage storage slot = _storage();
         uint16 sourceChainId = slot.axelarChainIdToId[sourceChain];
-        if (sourceChainId == 0 || slot.axelarAddressToId[sourceAddress] != sourceChainId) {
+        if (sourceChainId == 0 || slot.transceiverAddressToId[sourceAddress] != sourceChainId) {
             revert InvalidSibling(sourceChainId, sourceChain, sourceAddress);
         }
 
