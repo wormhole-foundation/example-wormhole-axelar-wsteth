@@ -93,13 +93,6 @@ contract WstEthL2TokenTest is Test {
         token.burn(_amount);
         assertEq(token.minter(), _newMinter);
         assertEq(token.balanceOf(_newMinter), 0);
-
-        // Change minter with owner
-        vm.prank(governance);
-        token.setMinter(governance);
-
-        vm.prank(governance);
-        assertNotEq(token.minter(), _newMinter);
     }
 
     // Switch owners

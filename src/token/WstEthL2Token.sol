@@ -93,6 +93,7 @@ contract WstEthL2Token is
 
         // These initializers don't do anything, so we won't call them
         // __ERC20Burnable_init();
+        // __UUPSUpgradeable_init();
     }
 
     /// @notice A function that will burn tokens held by the `msg.sender`.
