@@ -2,12 +2,18 @@
 
 pragma solidity ^0.8.0;
 
-import { InterchainGasEstimation, GasInfo } from '@axelar-network/axelar-gmp-sdk-solidity/contracts/gas-estimation/InterchainGasEstimation.sol';
-import { SafeTokenTransfer, SafeTokenTransferFrom } from '@axelar-network/axelar-gmp-sdk-solidity/contracts/libs/SafeTransfer.sol';
-import { SafeNativeTransfer } from '@axelar-network/axelar-gmp-sdk-solidity/contracts/libs/SafeNativeTransfer.sol';
-import { IERC20 } from '@axelar-network/axelar-gmp-sdk-solidity/contracts/interfaces/IERC20.sol';
-
-
+import {
+    InterchainGasEstimation,
+    GasInfo
+} from
+    "@axelar-network/axelar-gmp-sdk-solidity/contracts/gas-estimation/InterchainGasEstimation.sol";
+import {
+    SafeTokenTransfer,
+    SafeTokenTransferFrom
+} from "@axelar-network/axelar-gmp-sdk-solidity/contracts/libs/SafeTransfer.sol";
+import {SafeNativeTransfer} from
+    "@axelar-network/axelar-gmp-sdk-solidity/contracts/libs/SafeNativeTransfer.sol";
+import {IERC20} from "@axelar-network/axelar-gmp-sdk-solidity/contracts/interfaces/IERC20.sol";
 
 /**
  * @title AxelarGasService
@@ -115,7 +121,12 @@ interface IAxelarGasService {
         address refundAddress
     );
 
-    event NativeGasAdded(bytes32 indexed txHash, uint256 indexed logIndex, uint256 gasFeeAmount, address refundAddress);
+    event NativeGasAdded(
+        bytes32 indexed txHash,
+        uint256 indexed logIndex,
+        uint256 gasFeeAmount,
+        address refundAddress
+    );
 
     event ExpressGasAdded(
         bytes32 indexed txHash,
@@ -392,7 +403,6 @@ interface IAxelarGasService {
     ) external payable;
 }
 
-
 /**
  * @title AxelarGasService
  * @notice This contract manages gas payments and refunds for cross-chain communication on the Axelar network.
@@ -434,14 +444,23 @@ contract MockAxelarGasService is InterchainGasEstimation, IAxelarGasService {
         }
 
         if (estimateOnChain) {
-            uint256 gasEstimate = estimateGasFee(destinationChain, destinationAddress, payload, executionGasLimit, params);
+            uint256 gasEstimate = estimateGasFee(
+                destinationChain, destinationAddress, payload, executionGasLimit, params
+            );
 
             if (gasEstimate > msg.value) {
                 revert InsufficientGasPayment(gasEstimate, msg.value);
             }
         }
 
-        emit NativeGasPaidForContractCall(sender, destinationChain, destinationAddress, keccak256(payload), msg.value, refundAddress);
+        emit NativeGasPaidForContractCall(
+            sender,
+            destinationChain,
+            destinationAddress,
+            keccak256(payload),
+            msg.value,
+            refundAddress
+        );
     }
 
     /**
@@ -532,7 +551,14 @@ contract MockAxelarGasService is InterchainGasEstimation, IAxelarGasService {
         bytes calldata payload,
         address refundAddress
     ) external payable override {
-        emit NativeGasPaidForContractCall(sender, destinationChain, destinationAddress, keccak256(payload), msg.value, refundAddress);
+        emit NativeGasPaidForContractCall(
+            sender,
+            destinationChain,
+            destinationAddress,
+            keccak256(payload),
+            msg.value,
+            refundAddress
+        );
     }
 
     /**
@@ -587,7 +613,15 @@ contract MockAxelarGasService is InterchainGasEstimation, IAxelarGasService {
         uint256 gasFeeAmount,
         address refundAddress
     ) external override {
-        emit GasPaidForExpressCall(sender, destinationChain, destinationAddress, keccak256(payload), gasToken, gasFeeAmount, refundAddress);
+        emit GasPaidForExpressCall(
+            sender,
+            destinationChain,
+            destinationAddress,
+            keccak256(payload),
+            gasToken,
+            gasFeeAmount,
+            refundAddress
+        );
 
         IERC20(gasToken).safeTransferFrom(msg.sender, address(this), gasFeeAmount);
     }
@@ -647,7 +681,14 @@ contract MockAxelarGasService is InterchainGasEstimation, IAxelarGasService {
         bytes calldata payload,
         address refundAddress
     ) external payable override {
-        emit NativeGasPaidForExpressCall(sender, destinationChain, destinationAddress, keccak256(payload), msg.value, refundAddress);
+        emit NativeGasPaidForExpressCall(
+            sender,
+            destinationChain,
+            destinationAddress,
+            keccak256(payload),
+            msg.value,
+            refundAddress
+        );
     }
 
     /**

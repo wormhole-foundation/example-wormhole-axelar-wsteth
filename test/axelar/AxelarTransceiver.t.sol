@@ -3,20 +3,18 @@ pragma solidity >=0.8.8 <0.9.0;
 
 import "../../src/axelar/AxelarTransceiver.sol";
 import "./mock/MockGateway.sol";
-import { MockAxelarGasService } from "./mock/MockGasService.sol";
-import { TransceiverStructs } from "@wormhole-foundation/native_token_transfer/libraries/TransceiverStructs.sol";
-import { NttManager } from "@wormhole-foundation/native_token_transfer/NttManager/NttManager.sol";
-import { INttManager } from "@wormhole-foundation/native_token_transfer/interfaces/INttManager.sol";
-import { IManagerBase } from "@wormhole-foundation/native_token_transfer/interfaces/IManagerBase.sol";
-import { ERC1967Proxy } from "openzeppelin-contracts/contracts/proxy/ERC1967/ERC1967Proxy.sol";
-import { wstETHL2Token } from "../../src/token/wstETHL2Token.sol";
-
+import {MockAxelarGasService} from "./mock/MockGasService.sol";
+import {TransceiverStructs} from
+    "@wormhole-foundation/native_token_transfer/libraries/TransceiverStructs.sol";
+import {NttManager} from "@wormhole-foundation/native_token_transfer/NttManager/NttManager.sol";
+import {INttManager} from "@wormhole-foundation/native_token_transfer/interfaces/INttManager.sol";
+import {IManagerBase} from "@wormhole-foundation/native_token_transfer/interfaces/IManagerBase.sol";
+import {ERC1967Proxy} from "openzeppelin-contracts/contracts/proxy/ERC1967/ERC1967Proxy.sol";
+import {wstETHL2Token} from "../../src/token/wstETHL2Token.sol";
 
 import "forge-std/console.sol";
 import "forge-std/Test.sol";
 import "openzeppelin-contracts/contracts/access/Ownable.sol";
-
-
 
 contract AxelarTransceiverTest is Test {
     address constant OWNER = address(1004);
@@ -41,26 +39,29 @@ contract AxelarTransceiverTest is Test {
         gasService = IAxelarGasService(address(new MockAxelarGasService()));
 
         wstETHL2Token token = new wstETHL2Token("name", "symobl", OWNER, OWNER);
-        address managerImplementation = address(new NttManager(        
-            address(token),
-            IManagerBase.Mode.LOCKING,
-            1,
-            RATE_LIMIT_DURATION,
-            SKIP_RATE_LIMITING
-        ));
-        manager = NttManager(address(new ERC1967Proxy(managerImplementation, '')));
+        address managerImplementation = address(
+            new NttManager(
+                address(token),
+                IManagerBase.Mode.LOCKING,
+                1,
+                RATE_LIMIT_DURATION,
+                SKIP_RATE_LIMITING
+            )
+        );
+        manager = NttManager(address(new ERC1967Proxy(managerImplementation, "")));
         manager.initialize();
         manager.transferOwnership(OWNER);
-        address implementation = address(new AxelarTransceiver(address(gateway), address(gasService), address(manager)));
-        transceiver = AxelarTransceiver(address(new ERC1967Proxy(implementation, '')));
+        address implementation =
+            address(new AxelarTransceiver(address(gateway), address(gasService), address(manager)));
+        transceiver = AxelarTransceiver(address(new ERC1967Proxy(implementation, "")));
         transceiver.initialize();
     }
 
     function test_setAxelarChainId() public {
         uint16 chainId = 1;
-        string memory chainName = 'chainName';
-        string memory axelarAddress = 'axelarAddress';
-        
+        string memory chainName = "chainName";
+        string memory axelarAddress = "axelarAddress";
+
         vm.prank(OWNER);
         transceiver.setAxelarChainId(chainId, chainName, axelarAddress);
         /*assertEq(transceiver.idToAxelarChainIds(chainId), chainName);
@@ -71,50 +72,59 @@ contract AxelarTransceiverTest is Test {
 
     function testFail_setAxelarChainIdNotOwner() public {
         uint16 chainId = 1;
-        string memory chainName = 'chainName';
-        string memory axelarAddress = 'axelarAddress';
-        
+        string memory chainName = "chainName";
+        string memory axelarAddress = "axelarAddress";
+
         transceiver.setAxelarChainId(chainId, chainName, axelarAddress);
     }
 
     function test_sendMessage() public {
         uint16 chainId = 1;
-        string memory chainName = 'chainName';
-        string memory axelarAddress = 'axelarAddress';
+        string memory chainName = "chainName";
+        string memory axelarAddress = "axelarAddress";
         bytes32 recipientNttManagerAddress = bytes32(uint256(1010));
-        bytes memory nttManagerMessage = bytes('nttManagerMessage');
+        bytes memory nttManagerMessage = bytes("nttManagerMessage");
         bytes32 refundAddress = bytes32(uint256(1011));
-        TransceiverStructs.TransceiverInstruction memory instruction = TransceiverStructs.TransceiverInstruction(0, bytes(''));
+        TransceiverStructs.TransceiverInstruction memory instruction =
+            TransceiverStructs.TransceiverInstruction(0, bytes(""));
 
         vm.prank(OWNER);
         transceiver.setAxelarChainId(chainId, chainName, axelarAddress);
         vm.prank(address(manager));
-        transceiver.sendMessage(chainId, instruction, nttManagerMessage, recipientNttManagerAddress, refundAddress);
+        transceiver.sendMessage(
+            chainId, instruction, nttManagerMessage, recipientNttManagerAddress, refundAddress
+        );
     }
 
     function testFail_sendMessageNotManager() public {
         uint16 chainId = 1;
-        string memory chainName = 'chainName';
-        string memory axelarAddress = 'axelarAddress';
+        string memory chainName = "chainName";
+        string memory axelarAddress = "axelarAddress";
         bytes32 recipientNttManagerAddress = bytes32(uint256(1010));
-        bytes memory nttManagerMessage = bytes('nttManagerMessage');
+        bytes memory nttManagerMessage = bytes("nttManagerMessage");
         bytes32 refundAddress = bytes32(uint256(1011));
-        TransceiverStructs.TransceiverInstruction memory instruction = TransceiverStructs.TransceiverInstruction(0, bytes(''));
+        TransceiverStructs.TransceiverInstruction memory instruction =
+            TransceiverStructs.TransceiverInstruction(0, bytes(""));
 
         vm.prank(OWNER);
         transceiver.setAxelarChainId(chainId, chainName, axelarAddress);
-        transceiver.sendMessage(chainId, instruction, nttManagerMessage, recipientNttManagerAddress, refundAddress);
+        transceiver.sendMessage(
+            chainId, instruction, nttManagerMessage, recipientNttManagerAddress, refundAddress
+        );
     }
 
     function testFail_sendMessageChainNotRegisterred() public {
         uint16 chainId = 1;
         bytes32 recipientNttManagerAddress = bytes32(uint256(1010));
-        bytes memory nttManagerMessage = bytes('nttManagerMessage');
+        bytes memory nttManagerMessage = bytes("nttManagerMessage");
         bytes32 refundAddress = bytes32(uint256(1011));
-        TransceiverStructs.TransceiverInstruction memory instruction = TransceiverStructs.TransceiverInstruction(0, bytes(''));
+        TransceiverStructs.TransceiverInstruction memory instruction =
+            TransceiverStructs.TransceiverInstruction(0, bytes(""));
 
         vm.prank(address(manager));
-        transceiver.sendMessage(chainId, instruction, nttManagerMessage, recipientNttManagerAddress, refundAddress);
+        transceiver.sendMessage(
+            chainId, instruction, nttManagerMessage, recipientNttManagerAddress, refundAddress
+        );
     }
 
     function test_transferTransceiverOwnership() public {
