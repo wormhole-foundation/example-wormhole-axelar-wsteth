@@ -37,7 +37,7 @@ contract AxelarTransceiver is IAxelarTransceiver, AxelarGMPExecutable, Transceiv
 
     // TODO: update this based on tests
     uint256 internal constant DESTINATION_EXECUTION_GAS_LIMIT = 200000;
-    
+
     constructor(
         address _gateway,
         address _gasService,
@@ -56,7 +56,7 @@ contract AxelarTransceiver is IAxelarTransceiver, AxelarGMPExecutable, Transceiv
         uint16 chainId,
         string calldata chainName,
         string calldata transceiverAddress
-    ) external onlyOwner {
+    ) external virtual onlyOwner {
         AxelarTransceiverStorage storage slot = _storage();
         slot.idToAxelarChainId[chainId] = chainName;
         slot.axelarChainIdToId[chainName] = chainId;
@@ -149,7 +149,7 @@ contract AxelarTransceiver is IAxelarTransceiver, AxelarGMPExecutable, Transceiv
         string calldata sourceChain,
         string calldata sourceAddress,
         bytes calldata payload
-    ) internal override {
+    ) internal override virtual {
         AxelarTransceiverStorage storage slot = _storage();
         uint16 sourceChainId = slot.axelarChainIdToId[sourceChain];
         if (sourceChainId == 0 || slot.transceiverAddressToId[sourceAddress] != sourceChainId) {
