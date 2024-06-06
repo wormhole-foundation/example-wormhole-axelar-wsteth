@@ -50,9 +50,9 @@ contract AxelarTransceiver is IAxelarTransceiver, AxelarGMPExecutable, Transceiv
     // are correct When new immutable variables are added, this function should be updated.
     function _checkImmutables() internal view virtual override {
         super._checkImmutables();
+
         assert(this.gasService() == gasService);
         assert(address(this.gateway()) == gatewayAddress);
-
     }
 
     /**
