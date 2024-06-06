@@ -167,9 +167,11 @@ contract AxelarTransceiver is IAxelarTransceiver, AxelarGMPExecutable, Transceiv
 
         (
             bytes32 sourceNttManagerAddress,
-            TransceiverStructs.NttManagerMessage memory nttManagerMessage,
+            bytes memory encodedNttManagerMessage,
             bytes32 recipientNttManagerAddress
-        ) = abi.decode(payload, (bytes32, TransceiverStructs.NttManagerMessage, bytes32));
+        ) = abi.decode(payload, (bytes32, bytes, bytes32));
+
+        TransceiverStructs.NttManagerMessage memory nttManagerMessage = TransceiverStructs.parseNttManagerMessage(encodedNttManagerMessage);
 
         _deliverToNttManager(
             sourceChainId, sourceNttManagerAddress, recipientNttManagerAddress, nttManagerMessage
