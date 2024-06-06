@@ -37,11 +37,7 @@ contract AxelarTransceiver is IAxelarTransceiver, AxelarGMPExecutable, Transceiv
 
     // TODO: update this based on tests
     uint256 internal constant DESTINATION_EXECUTION_GAS_LIMIT = 200000;
-
-    error UnsupportedMessageType();
-    error InvalidSibling(uint16 chainId, string sourceChain, string sourceAddress);
-    error NotImplemented();
-
+    
     constructor(
         address _gateway,
         address _gasService,
