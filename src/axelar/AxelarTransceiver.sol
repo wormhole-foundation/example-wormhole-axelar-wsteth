@@ -99,7 +99,7 @@ contract AxelarTransceiver is IAxelarTransceiver, AxelarGMPExecutable, Transceiv
         bytes32 refundAddress,
         TransceiverStructs.TransceiverInstruction memory, /*transceiverInstruction*/
         bytes memory nttManagerMessage
-    ) internal virtual override onlyNttManager {
+    ) internal virtual override {
         AxelarTransceiverStorage storage slot = _storage();
         string memory destinationContract = slot.idToTransceiverAddress[recipientChainId];
         string memory destinationChain = slot.idToAxelarChainId[recipientChainId];
