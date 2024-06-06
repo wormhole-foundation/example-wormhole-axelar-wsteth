@@ -46,6 +46,15 @@ contract AxelarTransceiver is IAxelarTransceiver, AxelarGMPExecutable, Transceiv
         gasService = IAxelarGasService(_gasService);
     }
 
+    // @define This method checks that the the referecnes to the nttManager and its corresponding function
+    // are correct When new immutable variables are added, this function should be updated.
+    function _checkImmutables() internal view virtual override {
+        super._checkImmutables();
+        assert(this.gasService() == gasService);
+        assert(address(this.gateway()) == gatewayAddress);
+
+    }
+
     /**
      * Set the bridge manager contract address
      * @param chainId The chainId of the chain. This is used to identify the chain in the EndpointManager.
