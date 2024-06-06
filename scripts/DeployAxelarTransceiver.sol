@@ -17,13 +17,8 @@ contract DeployAxelarTransceiver is ParseNttConfig {
         address nttManagerAddress;
     }
 
-    // The minimum gas limit to verify a message on mainnet. If you're worried about saving
-    // gas on testnet, pick up the phone and start dialing!
-    uint256 constant MIN_WORMHOLE_GAS_LIMIT = 150000;
-
-    function deployAxelarTransceiver(
-        DeploymentParams memory params
-    ) public returns (address) {
+    function run() public returns (address) {
+        DeploymentParams memory params = _readEnvVariables();
         // Deploy the Wormhole Transceiver.
         AxelarTransceiver implementation = new AxelarTransceiver(
             params.axelarGatewayAddress,
@@ -40,5 +35,19 @@ contract DeployAxelarTransceiver is ParseNttConfig {
         console2.logBytes32(toUniversalAddress(address(transceiverProxy)));
 
         return address(transceiverProxy);
+    }
+
+    function _readEnvVariables() internal view returns (DeploymentParams memory params) {
+        // Axelar Gateway.
+        params.axelarGatewayAddress = vm.envAddress("AXELAR_GATEWAY");
+        require(params.axelarGatewayAddress != address(0), "Invalid axelar gateway address");
+
+        // Axelar Gateway.
+        params.axelarGasServiceAddress = vm.envAddress("AXELAR_GAS_SERVICE");
+        require(params.axelarGasServiceAddress != address(0), "Invalid axelar gas service address");
+
+        // Axelar Gateway.
+        params.nttManagerAddress = vm.envAddress("NTT_MANAGER");
+        require(params.nttManagerAddress != address(0), "Invalid ntt manager address address");
     }
 }
