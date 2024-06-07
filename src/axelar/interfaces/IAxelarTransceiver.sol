@@ -25,4 +25,16 @@ interface IAxelarTransceiver is ITransceiver {
         bytes32 indexed recipientNttManagerAddress,
         bytes32 indexed refundAddress
     );
+
+    /**
+     * Set the bridge manager contract address
+     * @param chainId The chainId of the chain. This is used to identify the chain in the EndpointManager.
+     * @param chainName The chainName of the chain. This is used to identify the chain in the AxelarGateway.
+     * @param transceiverAddress The address of the tranceiver on the other chain, in the axelar accepted format.
+     */
+    function setAxelarChainId(
+        uint16 chainId,
+        string calldata chainName,
+        string calldata transceiverAddress
+    ) external;
 }
