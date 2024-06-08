@@ -20,7 +20,6 @@ import "openzeppelin-contracts/contracts/access/Ownable.sol";
 
 contract AxelarTransceiverTest is Test {
     address constant OWNER = address(1004);
-    address constant TOKEN = address(1005);
 
     uint64 constant RATE_LIMIT_DURATION = 0;
     bool constant SKIP_RATE_LIMITING = true;
