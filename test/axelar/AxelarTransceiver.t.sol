@@ -221,4 +221,13 @@ contract AxelarTransceiverTest is Test {
         );
         transceiver.execute(bytes32(0), chainName, axelarAddress, payload);
     }
+
+    function testFail_executeNotTrustedAddress() public {
+        uint16 chainId = 2;
+        string memory chainName = "chainName";
+        string memory axelarAddress = "axelarAddress";
+        bytes memory payload = bytes('');
+
+        transceiver.execute(bytes32(0), chainName, axelarAddress, payload);
+    }
 }
