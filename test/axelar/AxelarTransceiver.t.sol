@@ -190,4 +190,13 @@ contract AxelarTransceiverTest is Test {
 
         if(token.balanceOf(fromWormholeFormat(to)) != amount) revert('Amount Incorrect');
     }
+
+    function testFail_executeNotTrustedAddress() public {
+        uint16 chainId = 2;
+        string memory chainName = "chainName";
+        string memory axelarAddress = "axelarAddress";
+        bytes memory payload = bytes('');
+
+        transceiver.execute(bytes32(0), chainName, axelarAddress, payload);
+    }
 }
