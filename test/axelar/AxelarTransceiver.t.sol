@@ -18,7 +18,6 @@ import "openzeppelin-contracts/contracts/access/Ownable.sol";
 
 contract AxelarTransceiverTest is Test {
     address constant OWNER = address(1004);
-    address constant TOKEN = address(1005);
 
     uint64 constant RATE_LIMIT_DURATION = 0;
     bool constant SKIP_RATE_LIMITING = true;
@@ -30,6 +29,7 @@ contract AxelarTransceiverTest is Test {
     IAxelarGateway gateway;
     IAxelarGasService gasService;
     NttManager manager;
+    wstETHL2Token token;
 
     function setUp() public {
         string memory url = "https://ethereum-sepolia-rpc.publicnode.com";
@@ -38,7 +38,7 @@ contract AxelarTransceiverTest is Test {
         gateway = IAxelarGateway(new MockAxelarGateway());
         gasService = IAxelarGasService(address(new MockAxelarGasService()));
 
-        wstETHL2Token token = new wstETHL2Token("name", "symobl", OWNER, OWNER);
+        token = new wstETHL2Token("name", "symobl", OWNER, OWNER);
         address managerImplementation = address(
             new NttManager(
                 address(token),
@@ -55,6 +55,8 @@ contract AxelarTransceiverTest is Test {
             address(new AxelarTransceiver(address(gateway), address(gasService), address(manager)));
         transceiver = AxelarTransceiver(address(new ERC1967Proxy(implementation, "")));
         transceiver.initialize();
+        vm.prank(OWNER);
+        manager.setTransceiver(address(transceiver));
     }
 
     function test_setAxelarChainId() public {
@@ -139,5 +141,53 @@ contract AxelarTransceiverTest is Test {
 
         vm.prank(OWNER);
         transceiver.transferTransceiverOwnership(newOwner);
+    }
+
+    function test_execute() public {
+        uint16 chainId = 2;
+        string memory chainName = "chainName";
+        string memory axelarAddress = "axelarAddress";
+        bytes32 recipientNttManagerAddress = bytes32(uint256(uint160(address(manager))));
+
+
+        bytes32 to = bytes32(uint256(1234));
+        // Since our tokens have 18 decimals we need at least 10 zeros at the end to not lose precision.
+        uint64 amount = 12345670000000000;
+        bytes memory nttPayload;
+        {
+            bytes4 prefix = TransceiverStructs.NTT_PREFIX;
+            uint8 decimals = 18;
+            bytes32 sourceToken = bytes32(uint256(1022));
+            uint16 toChain = 1;
+            nttPayload = abi.encodePacked(prefix, decimals, amount, sourceToken, to, toChain);
+        }
+
+        bytes memory nttManagerMessage;
+        {
+            uint16 length = uint16(nttPayload.length);
+            bytes32 messageId = bytes32(uint256(0));
+            bytes32 sender = bytes32(uint256(1));
+            nttManagerMessage = abi.encodePacked(messageId, sender, length, nttPayload);
+
+        }
+
+        bytes32 sourceNttManagerAddress = bytes32(uint256(1012));
+        bytes memory payload = abi.encode(sourceNttManagerAddress, nttManagerMessage, recipientNttManagerAddress);
+
+        vm.prank(OWNER);
+        manager.setPeer(
+            chainId,
+            sourceNttManagerAddress,
+            8,
+            100000000
+        );
+        vm.prank(OWNER);
+        transceiver.setAxelarChainId(chainId, chainName, axelarAddress);
+        vm.prank(OWNER);
+        token.mint(address(manager), amount);
+
+        transceiver.execute(bytes32(0), chainName, axelarAddress, payload);
+
+        if(token.balanceOf(fromWormholeFormat(to)) != amount) revert('Amount Incorrect');
     }
 }
