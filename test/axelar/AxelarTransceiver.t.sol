@@ -192,7 +192,6 @@ contract AxelarTransceiverTest is Test {
     }
 
     function testFail_executeNotTrustedAddress() public {
-        uint16 chainId = 2;
         string memory chainName = "chainName";
         string memory axelarAddress = "axelarAddress";
         bytes memory payload = bytes('');
