@@ -225,7 +225,7 @@ contract AxelarTransceiverTest is Test {
     function testFail_executeNotTrustedAddress() public {
         string memory chainName = "chainName";
         string memory axelarAddress = "axelarAddress";
-        bytes memory payload = bytes('');
+        bytes memory payload = bytes("");
 
         transceiver.execute(bytes32(0), chainName, axelarAddress, payload);
     }
