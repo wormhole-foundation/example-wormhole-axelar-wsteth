@@ -158,7 +158,7 @@ contract AxelarTransceiver is IAxelarTransceiver, AxelarGMPExecutable, Transceiv
         string calldata sourceChain,
         string calldata sourceAddress,
         bytes calldata payload
-    ) internal override virtual {
+    ) internal virtual override {
         AxelarTransceiverStorage storage slot = _storage();
         uint16 sourceChainId = slot.axelarChainIdToId[sourceChain];
         if (sourceChainId == 0 || slot.transceiverAddressToId[sourceAddress] != sourceChainId) {
@@ -171,7 +171,8 @@ contract AxelarTransceiver is IAxelarTransceiver, AxelarGMPExecutable, Transceiv
             bytes32 recipientNttManagerAddress
         ) = abi.decode(payload, (bytes32, bytes, bytes32));
 
-        TransceiverStructs.NttManagerMessage memory nttManagerMessage = TransceiverStructs.parseNttManagerMessage(encodedNttManagerMessage);
+        TransceiverStructs.NttManagerMessage memory nttManagerMessage =
+            TransceiverStructs.parseNttManagerMessage(encodedNttManagerMessage);
 
         _deliverToNttManager(
             sourceChainId, sourceNttManagerAddress, recipientNttManagerAddress, nttManagerMessage

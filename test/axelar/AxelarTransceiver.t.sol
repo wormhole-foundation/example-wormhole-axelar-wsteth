@@ -149,7 +149,6 @@ contract AxelarTransceiverTest is Test {
         string memory axelarAddress = "axelarAddress";
         bytes32 recipientNttManagerAddress = bytes32(uint256(uint160(address(manager))));
 
-
         bytes32 to = bytes32(uint256(1234));
         // Since our tokens have 18 decimals we need at least 10 zeros at the end to not lose precision.
         uint64 amount = 12345670000000000;
@@ -168,19 +167,14 @@ contract AxelarTransceiverTest is Test {
             bytes32 messageId = bytes32(uint256(0));
             bytes32 sender = bytes32(uint256(1));
             nttManagerMessage = abi.encodePacked(messageId, sender, length, nttPayload);
-
         }
 
         bytes32 sourceNttManagerAddress = bytes32(uint256(1012));
-        bytes memory payload = abi.encode(sourceNttManagerAddress, nttManagerMessage, recipientNttManagerAddress);
+        bytes memory payload =
+            abi.encode(sourceNttManagerAddress, nttManagerMessage, recipientNttManagerAddress);
 
         vm.prank(OWNER);
-        manager.setPeer(
-            chainId,
-            sourceNttManagerAddress,
-            8,
-            100000000
-        );
+        manager.setPeer(chainId, sourceNttManagerAddress, 8, 100000000);
         vm.prank(OWNER);
         transceiver.setAxelarChainId(chainId, chainName, axelarAddress);
         vm.prank(OWNER);
@@ -188,13 +182,13 @@ contract AxelarTransceiverTest is Test {
 
         transceiver.execute(bytes32(0), chainName, axelarAddress, payload);
 
-        if(token.balanceOf(fromWormholeFormat(to)) != amount) revert('Amount Incorrect');
+        if (token.balanceOf(fromWormholeFormat(to)) != amount) revert("Amount Incorrect");
     }
 
     function testFail_executeNotTrustedAddress() public {
         string memory chainName = "chainName";
         string memory axelarAddress = "axelarAddress";
-        bytes memory payload = bytes('');
+        bytes memory payload = bytes("");
 
         transceiver.execute(bytes32(0), chainName, axelarAddress, payload);
     }
