@@ -72,11 +72,14 @@ contract AxelarTransceiverTest is Test {
         assertEq(transceiver.axelarAddressToId(axelarAddress), chainId);*/
     }
 
-    function testFail_setAxelarChainIdNotOwner() public {
+    function test_setAxelarChainIdNotOwner() public {
         uint16 chainId = 1;
         string memory chainName = "chainName";
         string memory axelarAddress = "axelarAddress";
+        address sender = address(0x012345);
 
+        vm.prank(sender);
+        vm.expectRevert(abi.encodeWithSignature('OwnableUnauthorizedAccount(address)', sender));
         transceiver.setAxelarChainId(chainId, chainName, axelarAddress);
     }
 
@@ -98,7 +101,7 @@ contract AxelarTransceiverTest is Test {
         );
     }
 
-    function testFail_sendMessageNotManager() public {
+    function test_sendMessageNotManager() public {
         uint16 chainId = 1;
         string memory chainName = "chainName";
         string memory axelarAddress = "axelarAddress";
@@ -110,12 +113,14 @@ contract AxelarTransceiverTest is Test {
 
         vm.prank(OWNER);
         transceiver.setAxelarChainId(chainId, chainName, axelarAddress);
+        vm.prank(OWNER);
+        vm.expectRevert(abi.encodeWithSignature('CallerNotNttManager(address)', OWNER));
         transceiver.sendMessage(
             chainId, instruction, nttManagerMessage, recipientNttManagerAddress, refundAddress
         );
     }
 
-    function testFail_sendMessageChainNotRegisterred() public {
+    function test_sendMessageChainNotRegisterred() public {
         uint16 chainId = 1;
         bytes32 recipientNttManagerAddress = bytes32(uint256(1010));
         bytes memory nttManagerMessage = bytes("nttManagerMessage");
@@ -124,6 +129,7 @@ contract AxelarTransceiverTest is Test {
             TransceiverStructs.TransceiverInstruction(0, bytes(""));
 
         vm.prank(address(manager));
+        vm.expectRevert(abi.encodeWithSignature('InvalidChainId(uint16)', chainId));
         transceiver.sendMessage(
             chainId, instruction, nttManagerMessage, recipientNttManagerAddress, refundAddress
         );
@@ -136,10 +142,11 @@ contract AxelarTransceiverTest is Test {
         transceiver.transferTransceiverOwnership(newOwner);
     }
 
-    function testFail_transferTransceiverOwnershipNotManager() public {
+    function test_transferTransceiverOwnershipNotManager() public {
         address newOwner = address(1020);
 
         vm.prank(OWNER);
+        vm.expectRevert(abi.encodeWithSignature('CallerNotNttManager(address)', OWNER));
         transceiver.transferTransceiverOwnership(newOwner);
     }
 
@@ -185,11 +192,11 @@ contract AxelarTransceiverTest is Test {
         if (token.balanceOf(fromWormholeFormat(to)) != amount) revert("Amount Incorrect");
     }
 
-    function testFail_executeNotTrustedAddress() public {
+    function test_executeNotTrustedAddress() public {
         string memory chainName = "chainName";
         string memory axelarAddress = "axelarAddress";
         bytes memory payload = bytes("");
-
+        vm.expectRevert(abi.encodeWithSignature('InvalidSibling(uint16,string,string)', 0, chainName, axelarAddress));
         transceiver.execute(bytes32(0), chainName, axelarAddress, payload);
     }
 }
