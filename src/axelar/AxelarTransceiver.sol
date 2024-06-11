@@ -23,6 +23,8 @@ import {IAxelarTransceiver} from "./interfaces/IAxelarTransceiver.sol";
 contract AxelarTransceiver is IAxelarTransceiver, AxelarGMPExecutable, Transceiver {
     IAxelarGasService public immutable gasService;
 
+    string public constant AXELAR_TRANSCEIVER_VERSION = "1.0.0";
+
     // These mappings are used to convert chainId and chainName between Wormhole and Axelar formats.
     struct AxelarTransceiverStorage {
         mapping(uint16 => string) idToAxelarChainId;
