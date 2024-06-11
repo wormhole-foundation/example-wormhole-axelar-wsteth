@@ -226,7 +226,7 @@ contract AxelarTransceiverTest is Test {
         string memory chainName = "chainName";
         string memory axelarAddress = "axelarAddress";
         bytes memory payload = bytes("");
-
+        vm.expectRevert(abi.encodeWithSignature('InvalidSibling(uint16,string,string)', 0, chainName, axelarAddress));
         transceiver.execute(bytes32(0), chainName, axelarAddress, payload);
     }
 }
