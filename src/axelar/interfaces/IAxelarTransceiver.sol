@@ -12,7 +12,7 @@ interface IAxelarTransceiver is ITransceiver {
 
     /// @notice Chain Id passed is not valid.
     /// @param chainId The wormhole chainId.
-    error InvalidChainId(uint16 chainId);
+    error InvalidChainId(uint16 chainId, string chainName, string destinationContract);
 
     /// @notice Emmited when a transceiver message is sent.
     /// @param recipientChainId The wormhole chainId of the destination chain.

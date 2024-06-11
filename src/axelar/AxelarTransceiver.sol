@@ -116,7 +116,7 @@ contract AxelarTransceiver is IAxelarTransceiver, AxelarGMPExecutable, Transceiv
         string memory destinationChain = slot.idToAxelarChainId[recipientChainId];
 
         if (bytes(destinationChain).length == 0 || bytes(destinationContract).length == 0) {
-            revert InvalidChainId(recipientChainId);
+            revert InvalidChainId(recipientChainId, destinationChain, destinationContract);
         }
 
         bytes memory payload = abi.encode(nttManager, nttManagerMessage, recipientNttManagerAddress);

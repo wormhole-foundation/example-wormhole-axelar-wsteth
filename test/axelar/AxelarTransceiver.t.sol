@@ -129,7 +129,9 @@ contract AxelarTransceiverTest is Test {
             TransceiverStructs.TransceiverInstruction(0, bytes(""));
 
         vm.prank(address(manager));
-        vm.expectRevert(abi.encodeWithSignature("InvalidChainId(uint16)", chainId));
+        vm.expectRevert(
+            abi.encodeWithSignature("InvalidChainId(uint16,string,string)", chainId, "", "")
+        );
         transceiver.sendMessage(
             chainId, instruction, nttManagerMessage, recipientNttManagerAddress, refundAddress
         );
