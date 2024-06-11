@@ -79,7 +79,7 @@ contract AxelarTransceiverTest is Test {
         address sender = address(0x012345);
 
         vm.prank(sender);
-        vm.expectRevert(abi.encodeWithSignature('OwnableUnauthorizedAccount(address)', sender));
+        vm.expectRevert(abi.encodeWithSignature("OwnableUnauthorizedAccount(address)", sender));
         transceiver.setAxelarChainId(chainId, chainName, axelarAddress);
     }
 
@@ -114,7 +114,7 @@ contract AxelarTransceiverTest is Test {
         vm.prank(OWNER);
         transceiver.setAxelarChainId(chainId, chainName, axelarAddress);
         vm.prank(OWNER);
-        vm.expectRevert(abi.encodeWithSignature('CallerNotNttManager(address)', OWNER));
+        vm.expectRevert(abi.encodeWithSignature("CallerNotNttManager(address)", OWNER));
         transceiver.sendMessage(
             chainId, instruction, nttManagerMessage, recipientNttManagerAddress, refundAddress
         );
@@ -129,7 +129,7 @@ contract AxelarTransceiverTest is Test {
             TransceiverStructs.TransceiverInstruction(0, bytes(""));
 
         vm.prank(address(manager));
-        vm.expectRevert(abi.encodeWithSignature('InvalidChainId(uint16)', chainId));
+        vm.expectRevert(abi.encodeWithSignature("InvalidChainId(uint16)", chainId));
         transceiver.sendMessage(
             chainId, instruction, nttManagerMessage, recipientNttManagerAddress, refundAddress
         );
@@ -146,7 +146,7 @@ contract AxelarTransceiverTest is Test {
         address newOwner = address(1020);
 
         vm.prank(OWNER);
-        vm.expectRevert(abi.encodeWithSignature('CallerNotNttManager(address)', OWNER));
+        vm.expectRevert(abi.encodeWithSignature("CallerNotNttManager(address)", OWNER));
         transceiver.transferTransceiverOwnership(newOwner);
     }
 
@@ -196,7 +196,11 @@ contract AxelarTransceiverTest is Test {
         string memory chainName = "chainName";
         string memory axelarAddress = "axelarAddress";
         bytes memory payload = bytes("");
-        vm.expectRevert(abi.encodeWithSignature('InvalidSibling(uint16,string,string)', 0, chainName, axelarAddress));
+        vm.expectRevert(
+            abi.encodeWithSignature(
+                "InvalidSibling(uint16,string,string)", 0, chainName, axelarAddress
+            )
+        );
         transceiver.execute(bytes32(0), chainName, axelarAddress, payload);
     }
 }
