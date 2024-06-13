@@ -15,15 +15,15 @@ import {
     StringToAddress,
     AddressToString
 } from "@axelar-network/axelar-gmp-sdk-solidity/contracts/libs/AddressString.sol";
-// Use their libraries
 import {Transceiver} from "@wormhole-foundation/native_token_transfer/Transceiver/Transceiver.sol";
+import {ITransceiver} from "@wormhole-foundation/native_token_transfer/interfaces/ITransceiver.sol";
 
 import {IAxelarTransceiver} from "./interfaces/IAxelarTransceiver.sol";
 
 contract AxelarTransceiver is IAxelarTransceiver, AxelarGMPExecutable, Transceiver {
     IAxelarGasService public immutable gasService;
 
-    string public constant AXELAR_TRANSCEIVER_VERSION = "1.0.0";
+    string public constant AXELAR_TRANSCEIVER_VERSION = "1.1.0";
 
     // These mappings are used to convert chainId and chainName between Wormhole and Axelar formats.
     struct AxelarTransceiverStorage {
@@ -46,6 +46,11 @@ contract AxelarTransceiver is IAxelarTransceiver, AxelarGMPExecutable, Transceiv
         address _manager
     ) AxelarGMPExecutable(_gateway) Transceiver(_manager) {
         gasService = IAxelarGasService(_gasService);
+    }
+
+    /// @notice Returns the string type of the transceiver. E.g. "wormhole", "axelar", etc.
+    function getTransceiverType() external view virtual override (Transceiver, ITransceiver) returns (string memory) {
+        return "axelar";
     }
 
     // @define This method checks that the the referecnes to the nttManager and its corresponding function
