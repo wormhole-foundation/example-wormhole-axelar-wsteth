@@ -1,2 +1,2 @@
 @axelar-network/axelar-gmp-sdk-solidity=lib/axelar-gmp-sdk-solidity/
-@wormhole-foundation/native_token_transfer=lib/example-native-token-transfers/src
+@wormhole-foundation/native_token_transfer=lib/example-native-token-transfers/evm/src
