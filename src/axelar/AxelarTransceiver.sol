@@ -49,7 +49,13 @@ contract AxelarTransceiver is IAxelarTransceiver, AxelarGMPExecutable, Transceiv
     }
 
     /// @notice Returns the string type of the transceiver. E.g. "wormhole", "axelar", etc.
-    function getTransceiverType() external view virtual override (Transceiver, ITransceiver) returns (string memory) {
+    function getTransceiverType()
+        external
+        view
+        virtual
+        override(Transceiver, ITransceiver)
+        returns (string memory)
+    {
         return "axelar";
     }
 
