@@ -49,7 +49,7 @@ contract AxelarTransceiverTest is Test {
         vm.label(proxy, "Proxy");
 
         token = WstEthL2TokenHarness(proxy);
-        
+
         address managerImplementation = address(
             new NttManager(
                 address(token),
