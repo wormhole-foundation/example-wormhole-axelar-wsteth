@@ -13,7 +13,7 @@ interface IAxelarTransceiver is ITransceiver {
     /// @notice Chain Id passed is not valid.
     /// @param chainId The wormhole chainId.
     /// @param chainName The axelar chainName.
-    /// @param transceiverAddress The address of the Transceiver as a string. 
+    /// @param transceiverAddress The address of the Transceiver as a string.
     error InvalidChainId(uint16 chainId, string chainName, string transceiverAddress);
 
     /// @notice Chain Id passed is zero.
@@ -29,8 +29,8 @@ interface IAxelarTransceiver is ITransceiver {
         bytes nttManagerMessage,
         bytes32 indexed recipientNttManagerAddress,
         bytes32 indexed refundAddress
-    );    
-    
+    );
+
     /// @notice Emmited when the chain id is set.
     /// @param chainId The wormhole chainId of the destination chain.
     /// @param chainName The axelar chain name.
