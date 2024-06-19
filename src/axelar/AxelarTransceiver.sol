@@ -86,6 +86,8 @@ contract AxelarTransceiver is IAxelarTransceiver, AxelarGMPExecutable, Transceiv
         slot.axelarChainIdToId[chainName] = chainId;
         slot.idToTransceiverAddress[chainId] = transceiverAddress;
         slot.transceiverAddressToId[transceiverAddress] = chainId;
+        
+        emit AxelarChainIdSet(chainId, chainName, transceiverAddress);
     }
 
     /// @notice Fetch the delivery price for a given recipient chain transfer.
