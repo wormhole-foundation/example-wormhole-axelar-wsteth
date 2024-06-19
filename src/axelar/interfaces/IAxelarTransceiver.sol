@@ -29,8 +29,12 @@ interface IAxelarTransceiver is ITransceiver {
         bytes nttManagerMessage,
         bytes32 indexed recipientNttManagerAddress,
         bytes32 indexed refundAddress
-    );
-
+    );    
+    
+    /// @notice Emmited when the chain id is set.
+    /// @param chainId The wormhole chainId of the destination chain.
+    /// @param chainName The axelar chain name.
+    /// @param transceiverAddress The transceiver address as a string.
     event AxelarChainIdSet(uint16 chainId, string chainName, string transceiverAddress);
 
     /**
