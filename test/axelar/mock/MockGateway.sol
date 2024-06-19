@@ -23,24 +23,42 @@ interface IAxelarGateway {
         bytes calldata payload
     ) external;
 
-    function approveContractCall(bytes32 messageId, string calldata sourceChain, string calldata sourceAddress, bytes32 payloadHash) external;
+    function approveContractCall(
+        bytes32 messageId,
+        string calldata sourceChain,
+        string calldata sourceAddress,
+        bytes32 payloadHash
+    ) external;
 }
 
 contract MockAxelarGateway is IAxelarGateway {
     mapping(bytes32 => bool) approved;
+
     function callContract(
         string calldata destinationChain,
         string calldata destinationContractAddress,
         bytes calldata payload
     ) external override {
-        emit ContractCall(msg.sender, destinationChain, destinationContractAddress, keccak256(payload), payload);
+        emit ContractCall(
+            msg.sender, destinationChain, destinationContractAddress, keccak256(payload), payload
+        );
     }
 
-    function _getContractCallKey(bytes32 messageId, string calldata sourceChain, string calldata sourceAddress, bytes32 payloadHash) internal pure  returns (bytes32){
+    function _getContractCallKey(
+        bytes32 messageId,
+        string calldata sourceChain,
+        string calldata sourceAddress,
+        bytes32 payloadHash
+    ) internal pure returns (bytes32) {
         return keccak256(abi.encode(messageId, sourceChain, sourceAddress, payloadHash));
     }
 
-    function approveContractCall(bytes32 messageId, string calldata sourceChain, string calldata sourceAddress, bytes32 payloadHash) external {
+    function approveContractCall(
+        bytes32 messageId,
+        string calldata sourceChain,
+        string calldata sourceAddress,
+        bytes32 payloadHash
+    ) external {
         approved[_getContractCallKey(messageId, sourceChain, sourceAddress, payloadHash)] = true;
     }
 
@@ -52,7 +70,7 @@ contract MockAxelarGateway is IAxelarGateway {
     ) external override returns (bool) {
         bytes32 key = _getContractCallKey(messageId, sourceChain, sourceAddress, payloadHash);
         bool messageApproved = approved[key];
-        if(messageApproved) approved[key] = false;
+        if (messageApproved) approved[key] = false;
         return messageApproved;
     }
 }

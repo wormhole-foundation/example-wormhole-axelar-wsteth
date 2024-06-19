@@ -55,9 +55,11 @@ contract AxelarTransceiverEndToEnd is Test {
         sourceNttmanager = NttManager(address(new ERC1967Proxy(sourceManagerImplementation, "")));
         sourceNttmanager.initialize();
         sourceNttmanager.transferOwnership(OWNER);
-        address srcTransceiverImplementation =
-            address(new AxelarTransceiver(address(gateway), address(gasService), address(sourceNttmanager)));
-        sourceTransceiver = AxelarTransceiver(address(new ERC1967Proxy(srcTransceiverImplementation, "")));
+        address srcTransceiverImplementation = address(
+            new AxelarTransceiver(address(gateway), address(gasService), address(sourceNttmanager))
+        );
+        sourceTransceiver =
+            AxelarTransceiver(address(new ERC1967Proxy(srcTransceiverImplementation, "")));
         sourceTransceiver.initialize();
         vm.prank(OWNER);
         sourceNttmanager.setTransceiver(address(sourceTransceiver));
@@ -74,37 +76,31 @@ contract AxelarTransceiverEndToEnd is Test {
                 SKIP_RATE_LIMITING
             )
         );
-        recipientNttManager = NttManager(address(new ERC1967Proxy(recipientManagerImplementation, "")));
+        recipientNttManager =
+            NttManager(address(new ERC1967Proxy(recipientManagerImplementation, "")));
         recipientNttManager.initialize();
         recipientNttManager.transferOwnership(OWNER);
-        address rcptTransceiverImplementation =
-            address(new AxelarTransceiver(address(gateway), address(gasService), address(recipientNttManager)));
-        recipientTransceiver = AxelarTransceiver(address(new ERC1967Proxy(rcptTransceiverImplementation, "")));
+        address rcptTransceiverImplementation = address(
+            new AxelarTransceiver(
+                address(gateway), address(gasService), address(recipientNttManager)
+            )
+        );
+        recipientTransceiver =
+            AxelarTransceiver(address(new ERC1967Proxy(rcptTransceiverImplementation, "")));
         recipientTransceiver.initialize();
         vm.prank(OWNER);
-        recipientNttManager.setTransceiver(address(recipientTransceiver)); 
+        recipientNttManager.setTransceiver(address(recipientTransceiver));
 
+        bytes32 sourceNttManagerAddress = bytes32(uint256(uint160(address(sourceNttmanager))));
+        bytes32 recipientNttManagerAddress = bytes32(uint256(uint160(address(recipientNttManager))));
 
-        bytes32 sourceNttManagerAddress = bytes32(uint256(uint160(address(sourceNttmanager))));         
-        bytes32 recipientNttManagerAddress = bytes32(uint256(uint160(address(recipientNttManager))));        
-
-        // set peer ntt manager on source 
+        // set peer ntt manager on source
         vm.prank(OWNER);
-        sourceNttmanager.setPeer(
-            recipientChainId,
-            recipientNttManagerAddress,
-            18,
-            100000000
-        );
+        sourceNttmanager.setPeer(recipientChainId, recipientNttManagerAddress, 18, 100000000);
 
         // set peer ntt manager on recipient
         vm.prank(OWNER);
-        recipientNttManager.setPeer(
-            sourceChainId,
-            sourceNttManagerAddress,
-            18,
-            100000000
-        );        
+        recipientNttManager.setPeer(sourceChainId, sourceNttManagerAddress, 18, 100000000);
 
         string memory sourceChainName = "srcChain";
         string memory sourceAxelarAddress = "srcAxelar";
@@ -113,10 +109,12 @@ contract AxelarTransceiverEndToEnd is Test {
         string memory recipientAxelarAddress = "recipientAxelar";
 
         vm.prank(OWNER);
-        sourceTransceiver.setAxelarChainId(recipientChainId, recipientChainName, recipientAxelarAddress);
+        sourceTransceiver.setAxelarChainId(
+            recipientChainId, recipientChainName, recipientAxelarAddress
+        );
 
         vm.prank(OWNER);
-        recipientTransceiver.setAxelarChainId(sourceChainId, sourceChainName, sourceAxelarAddress);        
+        recipientTransceiver.setAxelarChainId(sourceChainId, sourceChainName, sourceAxelarAddress);
 
         // token mint source
         vm.prank(OWNER);
@@ -124,14 +122,12 @@ contract AxelarTransceiverEndToEnd is Test {
 
         vm.prank(OWNER);
         recipientToken.mint(address(recipientNttManager), 10e6 ether);
-
     }
 
     function testAxelarTransceiverEndToEnd() public {
         bytes32 refundAddress = bytes32(uint256(1011));
         TransceiverStructs.TransceiverInstruction memory instruction =
             TransceiverStructs.TransceiverInstruction(0, bytes(""));
-
 
         // SEND MESSAGE ON SOURCE CHAIN
         bytes32 to = bytes32(uint256(1234));
@@ -151,26 +147,31 @@ contract AxelarTransceiverEndToEnd is Test {
             bytes32 nttMessageId = bytes32(uint256(0));
             bytes32 sender = bytes32(uint256(1));
             nttManagerMessage = abi.encodePacked(nttMessageId, sender, length, nttPayload);
-
         }
-        bytes32 sourceNttManagerAddress = bytes32(uint256(uint160(address(sourceNttmanager))));         
-        bytes32 recipientNttManagerAddress = bytes32(uint256(uint160(address(recipientNttManager))));        
+        bytes32 sourceNttManagerAddress = bytes32(uint256(uint160(address(sourceNttmanager))));
+        bytes32 recipientNttManagerAddress = bytes32(uint256(uint160(address(recipientNttManager))));
 
         vm.prank(address(sourceNttmanager));
         sourceTransceiver.sendMessage(
-            recipientChainId, instruction, nttManagerMessage, recipientNttManagerAddress, refundAddress
+            recipientChainId,
+            instruction,
+            nttManagerMessage,
+            recipientNttManagerAddress,
+            refundAddress
         );
 
         // EXECUTE ON RECIPIENT CHAIN
-        bytes memory payload = abi.encode(sourceNttManagerAddress, nttManagerMessage, recipientNttManagerAddress);
-        
+        bytes memory payload =
+            abi.encode(sourceNttManagerAddress, nttManagerMessage, recipientNttManagerAddress);
+
         string memory sourceChainName = "srcChain";
         string memory sourceAxelarAddress = "srcAxelar";
-        bytes32 messageId = keccak256(bytes('message Id'));
+        bytes32 messageId = keccak256(bytes("message Id"));
 
-        gateway.approveContractCall(messageId, sourceChainName, sourceAxelarAddress, keccak256(payload));
+        gateway.approveContractCall(
+            messageId, sourceChainName, sourceAxelarAddress, keccak256(payload)
+        );
         recipientTransceiver.execute(messageId, sourceChainName, sourceAxelarAddress, payload);
-        if(recipientToken.balanceOf(fromWormholeFormat(to)) != amount) revert('Amount Incorrect');
-
+        if (recipientToken.balanceOf(fromWormholeFormat(to)) != amount) revert("Amount Incorrect");
     }
 }

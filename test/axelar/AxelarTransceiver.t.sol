@@ -117,7 +117,9 @@ contract AxelarTransceiverTest is Test {
         transceiver.setAxelarChainId(chainId, chainName, axelarAddress);
 
         vm.expectEmit(address(gateway));
-        emit ContractCall(address(transceiver), chainName, axelarAddress, keccak256(payload), payload);
+        emit ContractCall(
+            address(transceiver), chainName, axelarAddress, keccak256(payload), payload
+        );
         vm.prank(address(manager));
         transceiver.sendMessage(
             chainId, instruction, nttManagerMessage, recipientNttManagerAddress, refundAddress
@@ -222,20 +224,15 @@ contract AxelarTransceiverTest is Test {
 
         vm.prank(OWNER);
         token.mint(address(manager), amount);
-        vm.expectRevert(
-            abi.encodeWithSignature(
-                "NotApprovedByGateway()"
-            )
-        );
+        vm.expectRevert(abi.encodeWithSignature("NotApprovedByGateway()"));
         transceiver.execute(bytes32(0), chainName, axelarAddress, payload);
-        
     }
 
     function test_executeNotTrustedAddress() public {
         string memory chainName = "chainName";
         string memory axelarAddress = "axelarAddress";
         bytes memory payload = bytes("");
-        bytes32 messageId = keccak256(bytes('message Id'));
+        bytes32 messageId = keccak256(bytes("message Id"));
         gateway.approveContractCall(messageId, chainName, axelarAddress, keccak256(payload));
         vm.expectRevert(
             abi.encodeWithSignature(
