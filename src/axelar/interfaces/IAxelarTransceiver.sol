@@ -26,6 +26,8 @@ interface IAxelarTransceiver is ITransceiver {
         bytes32 indexed refundAddress
     );
 
+    event AxelarChainIdSet(uint16 chainId, string chainName, string transceiverAddress);
+
     /**
      * Set the bridge manager contract address
      * @param chainId The chainId of the chain. This is used to identify the chain in the EndpointManager.
