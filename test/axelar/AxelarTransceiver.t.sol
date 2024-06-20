@@ -10,13 +10,9 @@ import {NttManager} from "@wormhole-foundation/native_token_transfer/NttManager/
 import {INttManager} from "@wormhole-foundation/native_token_transfer/interfaces/INttManager.sol";
 import {IManagerBase} from "@wormhole-foundation/native_token_transfer/interfaces/IManagerBase.sol";
 import {ERC1967Proxy} from "openzeppelin-contracts/contracts/proxy/ERC1967/ERC1967Proxy.sol";
-<<<<<<< HEAD
-import {wstETHL2Token} from "../../src/token/wstETHL2Token.sol";
-=======
 import {WstEthL2Token} from "src/token/WstEthL2Token.sol";
 import {WstEthL2TokenHarness} from "test/token/WstEthL2TokenHarness.sol";
 import {Upgrades} from "script/lib/Upgrades.sol";
->>>>>>> origin/main
 
 import "forge-std/console.sol";
 import "forge-std/Test.sol";
@@ -35,11 +31,7 @@ contract AxelarTransceiverTest is Test {
     IAxelarGateway gateway;
     IAxelarGasService gasService;
     NttManager manager;
-<<<<<<< HEAD
-    wstETHL2Token token;
-=======
     WstEthL2TokenHarness token;
->>>>>>> origin/main
 
     function setUp() public {
         string memory url = "https://ethereum-sepolia-rpc.publicnode.com";
@@ -48,9 +40,6 @@ contract AxelarTransceiverTest is Test {
         gateway = IAxelarGateway(new MockAxelarGateway());
         gasService = IAxelarGasService(address(new MockAxelarGasService()));
 
-<<<<<<< HEAD
-        token = new wstETHL2Token("name", "symobl", OWNER, OWNER);
-=======
         // Deploy the token
         address proxy = Upgrades.deployUUPSProxy(
             "out/ERC1967Proxy.sol/ERC1967Proxy.json",
@@ -61,7 +50,6 @@ contract AxelarTransceiverTest is Test {
 
         token = WstEthL2TokenHarness(proxy);
 
->>>>>>> origin/main
         address managerImplementation = address(
             new NttManager(
                 address(token),
@@ -210,11 +198,8 @@ contract AxelarTransceiverTest is Test {
         vm.prank(OWNER);
         transceiver.setAxelarChainId(chainId, chainName, axelarAddress);
         vm.prank(OWNER);
-<<<<<<< HEAD
-=======
         token.setMinter(OWNER);
         vm.prank(OWNER);
->>>>>>> origin/main
         token.mint(address(manager), amount);
 
         transceiver.execute(bytes32(0), chainName, axelarAddress, payload);
