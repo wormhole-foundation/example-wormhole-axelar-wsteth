@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache 2
-pragma solidity 0.8.23;
+pragma solidity >=0.8.8 <0.9.0;
 
 import {OwnableUpgradeable} from
     "openzeppelin-contracts-upgradeable/contracts/access/OwnableUpgradeable.sol";
