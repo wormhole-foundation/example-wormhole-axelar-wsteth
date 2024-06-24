@@ -73,6 +73,7 @@ contract AxelarTransceiverTest is Test {
 
         vm.expectEmit(address(transceiver));
         emit AxelarChainIdSet(chainId, chainName, axelarAddress);
+
         vm.prank(OWNER);
         transceiver.setAxelarChainId(chainId, chainName, axelarAddress);
     }
