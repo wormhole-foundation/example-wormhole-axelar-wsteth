@@ -107,6 +107,7 @@ contract AxelarTransceiverTest is Test {
         emit ContractCall(
             address(transceiver), chainName, axelarAddress, keccak256(payload), payload
         );
+
         vm.prank(address(manager));
         transceiver.sendMessage(
             chainId, instruction, nttManagerMessage, recipientNttManagerAddress, refundAddress
