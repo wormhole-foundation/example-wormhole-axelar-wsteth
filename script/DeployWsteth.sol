@@ -4,26 +4,25 @@ pragma solidity >=0.8.7 <0.9.0;
 
 import {Script, console} from "forge-std/Script.sol";
 import {WstEthL2Token} from "../src/token/WstEthL2Token.sol";
-import {Upgrades} from "./lib/Upgrades.sol";
+import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
 contract DeployToken is Script {
-    function run() public {
+    function run() public returns (address implementation, address token) {
         vm.startBroadcast();
 
-        address proxy = Upgrades.deployUUPSProxy(
-            "out/ERC1967Proxy.sol/ERC1967Proxy.json",
-            "WstEthL2Token.sol",
-            abi.encodeCall(WstEthL2Token.initialize, ("Wrapped liquid staked Ether 2.0", "wstETH", msg.sender))
-        );
+        implementation = address(new WstEthL2Token());
 
-        WstEthL2Token token = WstEthL2Token(proxy);
+        token = address(new ERC1967Proxy(implementation, abi.encodeCall(WstEthL2Token.initialize, ("Wrapped liquid staked Ether 2.0", "wstETH", msg.sender))));
 
-        console.log("WstEthL2Token deployed at: ");
-        console.log(address(token));
+        console.log("WstEthL2Token implementation deployed at: ");
+        console.log(implementation);
+
+        console.log("WstEthL2Token proxy deployed at: ");
+        console.log(token);
         vm.stopBroadcast();
     }
 
-    function transferOwnership(address tokenAddress, address newOwner, address minter) public {
+    function transferMinterAndOwnership(address tokenAddress, address newOwner, address minter) public {
         vm.startBroadcast();
 
         WstEthL2Token token = WstEthL2Token(tokenAddress);
