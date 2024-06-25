@@ -84,9 +84,10 @@ contract AxelarTransceiver is IAxelarTransceiver, AxelarGMPExecutable, Transceiv
         
         AxelarTransceiverStorage storage slot = _storage();
         
-        if (bytes(slot.idToAxelarChainId[chainId]).length > 0) revert ChainNameAlreadySetForChainId();
-        
-        if (slot.axelarChainIdToId[chainName] > 0) revert ChainIdAlreadySetForChainName();
+        if (bytes(chainName).length > 0) {            
+            if (bytes(slot.idToAxelarChainId[chainId]).length > 0) revert ChainNameAlreadySetForChainId();
+            if (slot.axelarChainIdToId[chainName] > 0) revert ChainIdAlreadySetForChainName();
+        }
         
         slot.idToAxelarChainId[chainId] = chainName;
         slot.axelarChainIdToId[chainName] = chainId;
