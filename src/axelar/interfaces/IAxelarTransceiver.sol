@@ -19,6 +19,12 @@ interface IAxelarTransceiver is ITransceiver {
     /// @notice Chain Id passed is zero.
     error ZeroChainId();
 
+    /// @notice Chain name already set for chain id.
+    error ChainNameAlreadySetForChainId();
+    
+    /// @notice Chain id already set for chain name.
+    error ChainIdAlreadySetForChainName();
+
     /// @notice Emmited when a transceiver message is sent.
     /// @param recipientChainId The wormhole chainId of the destination chain.
     /// @param nttManagerMessage The message sent.
