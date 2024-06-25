@@ -16,8 +16,11 @@ interface IAxelarTransceiver is ITransceiver {
     /// @param transceiverAddress The address of the Transceiver as a string.
     error InvalidChainId(uint16 chainId, string chainName, string transceiverAddress);
 
-    /// @notice Chain Id passed is zero.
-    error ZeroChainId();
+    /// @notice Chain Id passed is zero, or Axelar Chain Id or Transceiver Address were empty.
+    error InvalidChainIdParams();
+
+    /// @notice Chain Id is already being used.
+    error ChainIdAlreadySet(uint16 chainId);
 
     /// @notice Emmited when a transceiver message is sent.
     /// @param recipientChainId The wormhole chainId of the destination chain.

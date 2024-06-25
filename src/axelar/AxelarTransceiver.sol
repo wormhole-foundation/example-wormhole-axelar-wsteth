@@ -80,9 +80,10 @@ contract AxelarTransceiver is IAxelarTransceiver, AxelarGMPExecutable, Transceiv
         string calldata transceiverAddress
     ) external virtual onlyOwner {
         // We allow empty chainName and transceiverAddress to allow removing chains.
-        if (chainId == 0) revert ZeroChainId();
+        if (chainId == 0 || bytes(chainName).length == 0 || bytes(transceiverAddress).length == 0) revert InvalidChainIdParams();
 
         AxelarTransceiverStorage storage slot = _storage();
+        if(bytes(slot.idToAxelarChainId[chainId]).length != 0) revert ChainIdAlreadySet(chainId);
         slot.idToAxelarChainId[chainId] = chainName;
         slot.axelarChainIdToId[chainName] = chainId;
         slot.idToTransceiverAddress[chainId] = transceiverAddress;
