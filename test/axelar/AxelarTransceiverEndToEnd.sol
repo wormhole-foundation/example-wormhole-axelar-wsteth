@@ -28,12 +28,12 @@ contract AxelarTransceiverEndToEnd is Test {
     IAxelarGateway gateway;
     IAxelarGasService gasService;
     NttManager sourceNttmanager;
-    wstETHL2Token sourceToken;
+    WstEthL2Token sourceToken;
     uint16 sourceChainId;
 
     AxelarTransceiver recipientTransceiver;
     NttManager recipientNttManager;
-    wstETHL2Token recipientToken;
+    WstEthL2Token recipientToken;
     uint16 recipientChainId;
 
     function setUp() public {
@@ -42,7 +42,7 @@ contract AxelarTransceiverEndToEnd is Test {
 
         // Setup Source Infrastructure
         sourceChainId = 1;
-        sourceToken = new wstETHL2Token("Wrapped StEth Source", "wStEthSrc", OWNER, OWNER);
+        sourceToken = new WstEthL2Token();
         address sourceManagerImplementation = address(
             new NttManager(
                 address(sourceToken),
@@ -66,7 +66,7 @@ contract AxelarTransceiverEndToEnd is Test {
 
         // Setup Recipient Infrastructure
         recipientChainId = 2;
-        recipientToken = new wstETHL2Token("Wrapped StEth Recipient", "wStEthRcpt", OWNER, OWNER);
+        recipientToken = new WstEthL2Token();
         address recipientManagerImplementation = address(
             new NttManager(
                 address(recipientToken),
