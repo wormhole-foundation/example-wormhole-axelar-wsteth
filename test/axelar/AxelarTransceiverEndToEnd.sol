@@ -10,7 +10,7 @@ import {NttManager} from "@wormhole-foundation/native_token_transfer/NttManager/
 import {INttManager} from "@wormhole-foundation/native_token_transfer/interfaces/INttManager.sol";
 import {IManagerBase} from "@wormhole-foundation/native_token_transfer/interfaces/IManagerBase.sol";
 import {ERC1967Proxy} from "openzeppelin-contracts/contracts/proxy/ERC1967/ERC1967Proxy.sol";
-import {wstETHL2Token} from "../../src/token/wstETHL2Token.sol";
+import {wstETHL2Token} from "../src/token/wstETHL2Token.sol";
 
 import "forge-std/console.sol";
 import "forge-std/Test.sol";
