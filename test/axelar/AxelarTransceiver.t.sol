@@ -2,6 +2,7 @@
 pragma solidity >=0.8.8 <0.9.0;
 
 import "../../src/axelar/AxelarTransceiver.sol";
+import "../../src/token/wstETHL2Token.sol";
 import "./mock/MockGateway.sol";
 import {MockAxelarGasService} from "./mock/MockGasService.sol";
 import {TransceiverStructs} from
