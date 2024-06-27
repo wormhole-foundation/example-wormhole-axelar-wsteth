@@ -39,10 +39,12 @@ contract AxelarTransceiverEndToEnd is Test {
     function setUp() public {
         gateway = IAxelarGateway(new MockAxelarGateway());
         gasService = IAxelarGasService(address(new MockAxelarGasService()));
-
         // Setup Source Infrastructure
         sourceChainId = 1;
-        sourceToken = new WstEthL2Token();
+        address tokenImplementaion = address(new WstEthL2Token());
+        sourceToken = WstEthL2Token(address(new ERC1967Proxy(tokenImplementaion, abi.encodeWithSelector(WstEthL2Token.initialize.selector, 'Source Token', 'ST', OWNER))));
+        vm.prank(OWNER);
+        sourceToken.setMinter(OWNER);
         address sourceManagerImplementation = address(
             new NttManager(
                 address(sourceToken),
@@ -66,7 +68,9 @@ contract AxelarTransceiverEndToEnd is Test {
 
         // Setup Recipient Infrastructure
         recipientChainId = 2;
-        recipientToken = new WstEthL2Token();
+        recipientToken = WstEthL2Token(address(new ERC1967Proxy(tokenImplementaion, abi.encodeWithSelector(WstEthL2Token.initialize.selector, 'Source Token', 'ST', OWNER))));
+        vm.prank(OWNER);
+        recipientToken.setMinter(OWNER);
         address recipientManagerImplementation = address(
             new NttManager(
                 address(recipientToken),
@@ -93,7 +97,7 @@ contract AxelarTransceiverEndToEnd is Test {
 
         bytes32 sourceNttManagerAddress = bytes32(uint256(uint160(address(sourceNttmanager))));
         bytes32 recipientNttManagerAddress = bytes32(uint256(uint160(address(recipientNttManager))));
-
+        
         // set peer ntt manager on source
         vm.prank(OWNER);
         sourceNttmanager.setPeer(recipientChainId, recipientNttManagerAddress, 18, 100000000);
