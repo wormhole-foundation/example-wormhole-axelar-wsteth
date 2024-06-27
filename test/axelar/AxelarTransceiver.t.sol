@@ -2,6 +2,7 @@
 pragma solidity >=0.8.8 <0.9.0;
 
 import "../../src/axelar/AxelarTransceiver.sol";
+import "../../src/token/wstETHL2Token.sol";
 import "./mock/MockGateway.sol";
 import {MockAxelarGasService} from "./mock/MockGasService.sol";
 import {TransceiverStructs} from
@@ -10,7 +11,6 @@ import {NttManager} from "@wormhole-foundation/native_token_transfer/NttManager/
 import {INttManager} from "@wormhole-foundation/native_token_transfer/interfaces/INttManager.sol";
 import {IManagerBase} from "@wormhole-foundation/native_token_transfer/interfaces/IManagerBase.sol";
 import {ERC1967Proxy} from "openzeppelin-contracts/contracts/proxy/ERC1967/ERC1967Proxy.sol";
-import {wstETHL2Token} from "../../src/token/wstETHL2Token.sol";
 
 import "forge-std/console.sol";
 import "forge-std/Test.sol";
