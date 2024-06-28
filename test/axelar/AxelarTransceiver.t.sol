@@ -92,6 +92,26 @@ contract AxelarTransceiverTest is Test {
         transceiver.setAxelarChainId(chainId, chainName, axelarAddress);
     }
 
+    function test_setAxelarChainIdDuplicateChainId() public {
+        uint16 chainId = 1;
+        string memory chainName = "chainName";
+        string memory axelarAddress = "axelarAddress";
+
+        vm.expectEmit(address(transceiver));
+        emit AxelarChainIdSet(chainId, chainName, axelarAddress);
+
+        vm.prank(OWNER);
+        transceiver.setAxelarChainId(chainId, chainName, axelarAddress);
+
+        vm.prank(OWNER);
+        vm.expectRevert(abi.encodeWithSignature("ChainIdAlreadySet(uint16)", chainId));
+        transceiver.setAxelarChainId(chainId, chainName, axelarAddress);
+
+        vm.prank(OWNER);
+        vm.expectRevert(abi.encodeWithSignature("AxelarChainIdAlreadySet(string)", chainName));
+        transceiver.setAxelarChainId(chainId + 1, chainName, axelarAddress);
+    }
+
     function test_setAxelarChainIdNotOwner() public {
         uint16 chainId = 1;
         string memory chainName = "chainName";
