@@ -10,7 +10,7 @@ import {NttManager} from "@wormhole-foundation/native_token_transfer/NttManager/
 import {INttManager} from "@wormhole-foundation/native_token_transfer/interfaces/INttManager.sol";
 import {IManagerBase} from "@wormhole-foundation/native_token_transfer/interfaces/IManagerBase.sol";
 import {ERC1967Proxy} from "openzeppelin-contracts/contracts/proxy/ERC1967/ERC1967Proxy.sol";
-import {wstETHL2Token} from "../../src/token/wstETHL2Token.sol";
+import {WstEthL2Token} from "src/token/WstEthL2Token.sol";
 
 import "forge-std/console.sol";
 import "forge-std/Test.sol";
@@ -28,21 +28,32 @@ contract AxelarTransceiverEndToEnd is Test {
     IAxelarGateway gateway;
     IAxelarGasService gasService;
     NttManager sourceNttmanager;
-    wstETHL2Token sourceToken;
+    WstEthL2Token sourceToken;
     uint16 sourceChainId;
 
     AxelarTransceiver recipientTransceiver;
     NttManager recipientNttManager;
-    wstETHL2Token recipientToken;
+    WstEthL2Token recipientToken;
     uint16 recipientChainId;
 
     function setUp() public {
         gateway = IAxelarGateway(new MockAxelarGateway());
         gasService = IAxelarGasService(address(new MockAxelarGasService()));
-
         // Setup Source Infrastructure
         sourceChainId = 1;
-        sourceToken = new wstETHL2Token("Wrapped StEth Source", "wStEthSrc", OWNER, OWNER);
+        address tokenImplementaion = address(new WstEthL2Token());
+        sourceToken = WstEthL2Token(
+            address(
+                new ERC1967Proxy(
+                    tokenImplementaion,
+                    abi.encodeWithSelector(
+                        WstEthL2Token.initialize.selector, "Source Token", "ST", OWNER
+                    )
+                )
+            )
+        );
+        vm.prank(OWNER);
+        sourceToken.setMinter(OWNER);
         address sourceManagerImplementation = address(
             new NttManager(
                 address(sourceToken),
@@ -66,7 +77,18 @@ contract AxelarTransceiverEndToEnd is Test {
 
         // Setup Recipient Infrastructure
         recipientChainId = 2;
-        recipientToken = new wstETHL2Token("Wrapped StEth Recipient", "wStEthRcpt", OWNER, OWNER);
+        recipientToken = WstEthL2Token(
+            address(
+                new ERC1967Proxy(
+                    tokenImplementaion,
+                    abi.encodeWithSelector(
+                        WstEthL2Token.initialize.selector, "Source Token", "ST", OWNER
+                    )
+                )
+            )
+        );
+        vm.prank(OWNER);
+        recipientToken.setMinter(OWNER);
         address recipientManagerImplementation = address(
             new NttManager(
                 address(recipientToken),

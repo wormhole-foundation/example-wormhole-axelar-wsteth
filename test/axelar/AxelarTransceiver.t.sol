@@ -10,7 +10,9 @@ import {NttManager} from "@wormhole-foundation/native_token_transfer/NttManager/
 import {INttManager} from "@wormhole-foundation/native_token_transfer/interfaces/INttManager.sol";
 import {IManagerBase} from "@wormhole-foundation/native_token_transfer/interfaces/IManagerBase.sol";
 import {ERC1967Proxy} from "openzeppelin-contracts/contracts/proxy/ERC1967/ERC1967Proxy.sol";
-import {wstETHL2Token} from "../../src/token/wstETHL2Token.sol";
+import {WstEthL2Token} from "src/token/WstEthL2Token.sol";
+import {WstEthL2TokenHarness} from "test/token/WstEthL2TokenHarness.sol";
+import {Upgrades} from "script/lib/Upgrades.sol";
 
 import "forge-std/console.sol";
 import "forge-std/Test.sol";
@@ -39,13 +41,22 @@ contract AxelarTransceiverTest is Test {
     IAxelarGateway gateway;
     IAxelarGasService gasService;
     NttManager manager;
-    wstETHL2Token token;
+    WstEthL2TokenHarness token;
 
     function setUp() public {
         gateway = IAxelarGateway(new MockAxelarGateway());
         gasService = IAxelarGasService(address(new MockAxelarGasService()));
 
-        token = new wstETHL2Token("name", "symobl", OWNER, OWNER);
+        // Deploy the token
+        address proxy = Upgrades.deployUUPSProxy(
+            "out/ERC1967Proxy.sol/ERC1967Proxy.json",
+            "WstEthL2TokenHarness.sol",
+            abi.encodeCall(WstEthL2Token.initialize, ("Wrapped Staked Eth", "wstEth", OWNER))
+        );
+        vm.label(proxy, "Proxy");
+
+        token = WstEthL2TokenHarness(proxy);
+
         address managerImplementation = address(
             new NttManager(
                 address(token),
@@ -76,6 +87,26 @@ contract AxelarTransceiverTest is Test {
 
         vm.prank(OWNER);
         transceiver.setAxelarChainId(chainId, chainName, axelarAddress);
+    }
+
+    function test_setAxelarChainIdDuplicateChainId() public {
+        uint16 chainId = 1;
+        string memory chainName = "chainName";
+        string memory axelarAddress = "axelarAddress";
+
+        vm.expectEmit(address(transceiver));
+        emit AxelarChainIdSet(chainId, chainName, axelarAddress);
+
+        vm.prank(OWNER);
+        transceiver.setAxelarChainId(chainId, chainName, axelarAddress);
+
+        vm.prank(OWNER);
+        vm.expectRevert(abi.encodeWithSignature("ChainIdAlreadySet(uint16)", chainId));
+        transceiver.setAxelarChainId(chainId, chainName, axelarAddress);
+
+        vm.prank(OWNER);
+        vm.expectRevert(abi.encodeWithSignature("AxelarChainIdAlreadySet(string)", chainName));
+        transceiver.setAxelarChainId(chainId + 1, chainName, axelarAddress);
     }
 
     function test_setAxelarChainIdNotOwner() public {
@@ -200,6 +231,8 @@ contract AxelarTransceiverTest is Test {
         manager.setPeer(chainId, sourceNttManagerAddress, 8, 100000000);
         vm.prank(OWNER);
         transceiver.setAxelarChainId(chainId, chainName, axelarAddress);
+        vm.prank(OWNER);
+        token.setMinter(OWNER);
         vm.prank(OWNER);
         token.mint(address(manager), amount);
         gateway.approveContractCall(messageId, chainName, axelarAddress, keccak256(payload));
