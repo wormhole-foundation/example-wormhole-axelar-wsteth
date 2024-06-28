@@ -12,7 +12,18 @@ interface IAxelarTransceiver is ITransceiver {
 
     /// @notice Chain Id passed is not valid.
     /// @param chainId The wormhole chainId.
-    error InvalidChainId(uint16 chainId, string chainName, string destinationContract);
+    /// @param chainName The axelar chainName.
+    /// @param transceiverAddress The address of the Transceiver as a string.
+    error InvalidChainId(uint16 chainId, string chainName, string transceiverAddress);
+
+    /// @notice Chain Id passed is zero, or Axelar Chain Id or Transceiver Address were empty.
+    error InvalidChainIdParams();
+
+    /// @notice Chain Id is already being used.
+    error ChainIdAlreadySet(uint16 chainId);
+
+    /// @notice Axelar chain Id is already being used.
+    error AxelarChainIdAlreadySet(string axelarChainId);
 
     /// @notice Emmited when a transceiver message is sent.
     /// @param recipientChainId The wormhole chainId of the destination chain.
@@ -25,6 +36,12 @@ interface IAxelarTransceiver is ITransceiver {
         bytes32 indexed recipientNttManagerAddress,
         bytes32 indexed refundAddress
     );
+
+    /// @notice Emmited when the chain id is set.
+    /// @param chainId The wormhole chainId of the destination chain.
+    /// @param chainName The axelar chain name.
+    /// @param transceiverAddress The transceiver address as a string.
+    event AxelarChainIdSet(uint16 chainId, string chainName, string transceiverAddress);
 
     /**
      * Set the bridge manager contract address
