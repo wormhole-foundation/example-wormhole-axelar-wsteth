@@ -22,6 +22,9 @@ interface IAxelarTransceiver is ITransceiver {
     /// @notice Chain Id is already being used.
     error ChainIdAlreadySet(uint16 chainId);
 
+    /// @notice Axelar chain Id is already being used.
+    error AxelarChainIdAlreadySet(string axelarChainId);
+
     /// @notice Emmited when a transceiver message is sent.
     /// @param recipientChainId The wormhole chainId of the destination chain.
     /// @param nttManagerMessage The message sent.
