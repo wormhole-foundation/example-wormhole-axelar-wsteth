@@ -92,7 +92,7 @@ contract AxelarTransceiver is IAxelarTransceiver, AxelarGMPExecutable, Transceiv
         slot.idToAxelarChainId[chainId] = chainName;
         slot.axelarChainIdToId[chainName] = chainId;
         slot.idToTransceiverAddress[chainId] = transceiverAddress;
-        slot.idToTransceiverAddressHash[hainId] = keccak256(transceiverAddress);
+        slot.idToTransceiverAddressHash[chainId] = keccak256(transceiverAddress);
 
         emit AxelarChainIdSet(chainId, chainName, transceiverAddress);
     }
