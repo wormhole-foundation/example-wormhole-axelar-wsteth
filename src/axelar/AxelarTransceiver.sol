@@ -185,7 +185,10 @@ contract AxelarTransceiver is IAxelarTransceiver, AxelarGMPExecutable, Transceiv
     ) internal virtual override {
         AxelarTransceiverStorage storage slot = _storage();
         uint16 sourceChainId = slot.axelarChainIdToId[sourceChain];
-        if (sourceChainId == 0 || slot.idToTransceiverAddressHash[sourceChainId] != keccak256(bytes(sourceAddress))) {
+        if (
+            sourceChainId == 0
+                || slot.idToTransceiverAddressHash[sourceChainId] != keccak256(bytes(sourceAddress))
+        ) {
             revert InvalidSibling(sourceChainId, sourceChain, sourceAddress);
         }
 
