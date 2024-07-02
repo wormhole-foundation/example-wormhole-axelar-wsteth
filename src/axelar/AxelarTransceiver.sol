@@ -30,7 +30,7 @@ contract AxelarTransceiver is IAxelarTransceiver, AxelarGMPExecutable, Transceiv
         mapping(uint16 => string) idToAxelarChainId;
         mapping(string => uint16) axelarChainIdToId;
         mapping(uint16 => string) idToTransceiverAddress;
-        mapping(string => uint16) transceiverAddressToId;
+        mapping(uint16 => bytes32) idToTransceiverAddressHash;
     }
     // keccak256(abi.encode(uint256(keccak256("openzeppelin.storage.AxelarTransceiver")) - 1)) & ~bytes32(uint256(0xff))
 
@@ -79,11 +79,22 @@ contract AxelarTransceiver is IAxelarTransceiver, AxelarGMPExecutable, Transceiv
         string calldata chainName,
         string calldata transceiverAddress
     ) external virtual onlyOwner {
+        if (chainId == 0 || bytes(chainName).length == 0 || bytes(transceiverAddress).length == 0) {
+            revert InvalidChainIdParams();
+        }
+
         AxelarTransceiverStorage storage slot = _storage();
+
+        if (bytes(slot.idToAxelarChainId[chainId]).length != 0) revert ChainIdAlreadySet(chainId);
+
+        if (slot.axelarChainIdToId[chainName] != 0) revert AxelarChainIdAlreadySet(chainName);
+
         slot.idToAxelarChainId[chainId] = chainName;
         slot.axelarChainIdToId[chainName] = chainId;
         slot.idToTransceiverAddress[chainId] = transceiverAddress;
-        slot.transceiverAddressToId[transceiverAddress] = chainId;
+        slot.idToTransceiverAddressHash[chainId] = keccak256(bytes(transceiverAddress));
+
+        emit AxelarChainIdSet(chainId, chainName, transceiverAddress);
     }
 
     /// @notice Fetch the delivery price for a given recipient chain transfer.
@@ -174,7 +185,10 @@ contract AxelarTransceiver is IAxelarTransceiver, AxelarGMPExecutable, Transceiv
     ) internal virtual override {
         AxelarTransceiverStorage storage slot = _storage();
         uint16 sourceChainId = slot.axelarChainIdToId[sourceChain];
-        if (sourceChainId == 0 || slot.transceiverAddressToId[sourceAddress] != sourceChainId) {
+        if (
+            sourceChainId == 0
+                || slot.idToTransceiverAddressHash[sourceChainId] != keccak256(bytes(sourceAddress))
+        ) {
             revert InvalidSibling(sourceChainId, sourceChain, sourceAddress);
         }
 
