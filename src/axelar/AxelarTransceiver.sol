@@ -30,7 +30,7 @@ contract AxelarTransceiver is IAxelarTransceiver, AxelarGMPExecutable, Transceiv
         mapping(uint16 => string) idToAxelarChainId;
         mapping(string => uint16) axelarChainIdToId;
         mapping(uint16 => string) idToTransceiverAddress;
-        mapping(string => uint16) transceiverAddressToId;
+        mapping(uint16 => bytes32) idToTransceiverAddressHash;
     }
     // keccak256(abi.encode(uint256(keccak256("openzeppelin.storage.AxelarTransceiver")) - 1)) & ~bytes32(uint256(0xff))
 
@@ -92,7 +92,7 @@ contract AxelarTransceiver is IAxelarTransceiver, AxelarGMPExecutable, Transceiv
         slot.idToAxelarChainId[chainId] = chainName;
         slot.axelarChainIdToId[chainName] = chainId;
         slot.idToTransceiverAddress[chainId] = transceiverAddress;
-        slot.transceiverAddressToId[transceiverAddress] = chainId;
+        slot.idToTransceiverAddressHash[chainId] = keccak256(bytes(transceiverAddress));
 
         emit AxelarChainIdSet(chainId, chainName, transceiverAddress);
     }
@@ -185,7 +185,10 @@ contract AxelarTransceiver is IAxelarTransceiver, AxelarGMPExecutable, Transceiv
     ) internal virtual override {
         AxelarTransceiverStorage storage slot = _storage();
         uint16 sourceChainId = slot.axelarChainIdToId[sourceChain];
-        if (sourceChainId == 0 || slot.transceiverAddressToId[sourceAddress] != sourceChainId) {
+        if (
+            sourceChainId == 0
+                || slot.idToTransceiverAddressHash[sourceChainId] != keccak256(bytes(sourceAddress))
+        ) {
             revert InvalidSibling(sourceChainId, sourceChain, sourceAddress);
         }
 
