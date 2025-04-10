@@ -20,19 +20,24 @@ contract DeployAxelarTransceiver is ParseNttConfig {
     }
 
     function run() public returns (address) {
+        console2.logAddress(address(this));
+
         DeploymentParams memory params = _readEnvVariables();
         // Deploy the Wormhole Transceiver.
         AxelarTransceiver implementation = new AxelarTransceiver(
             params.axelarGatewayAddress, params.axelarGasServiceAddress, params.nttManagerAddress
         );
 
+        console2.log("Axelar Transceiver Implementation deployed at: ");
+        console2.logAddress(address(implementation));
+
         AxelarTransceiver transceiverProxy =
             AxelarTransceiver(address(new ERC1967Proxy(address(implementation), "")));
 
         transceiverProxy.initialize();
 
-        console2.log("Axelar Transceiver deployed at: ");
-        console2.logBytes32(toUniversalAddress(address(transceiverProxy)));
+        console2.log("Axelar Transceiver Proxy deployed at: ");
+        console2.logAddress(address(transceiverProxy));
 
         return address(transceiverProxy);
     }
