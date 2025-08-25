@@ -16,12 +16,12 @@ import {
     StringToAddress,
     AddressToString
 } from "@axelar-network/axelar-gmp-sdk-solidity/contracts/libs/AddressString.sol";
-import {Transceiver} from "@wormhole-foundation/native_token_transfer/Transceiver/Transceiver.sol";
 import {ITransceiver} from "@wormhole-foundation/native_token_transfer/interfaces/ITransceiver.sol";
 
 import {IAxelarTransceiver} from "./interfaces/IAxelarTransceiver.sol";
+import {TokenlessTransceiver} from "./TokenlessTransceiver.sol";
 
-contract AxelarTransceiver is IAxelarTransceiver, AxelarGMPExecutable, Transceiver {
+contract AxelarTransceiver is IAxelarTransceiver, AxelarGMPExecutable, TokenlessTransceiver {
     using BytesParsing for bytes;
 
     IAxelarGasService public immutable gasService;
@@ -44,7 +44,7 @@ contract AxelarTransceiver is IAxelarTransceiver, AxelarGMPExecutable, Transceiv
         address _gateway,
         address _gasService,
         address _manager
-    ) AxelarGMPExecutable(_gateway) Transceiver(_manager) {
+    ) AxelarGMPExecutable(_gateway) TokenlessTransceiver(_manager) {
         gasService = IAxelarGasService(_gasService);
     }
 
@@ -53,7 +53,7 @@ contract AxelarTransceiver is IAxelarTransceiver, AxelarGMPExecutable, Transceiv
         external
         view
         virtual
-        override(Transceiver, ITransceiver)
+        override(TokenlessTransceiver, ITransceiver)
         returns (string memory)
     {
         return "axelar";
@@ -63,7 +63,6 @@ contract AxelarTransceiver is IAxelarTransceiver, AxelarGMPExecutable, Transceiv
     // are correct When new immutable variables are added, this function should be updated.
     function _checkImmutables() internal view virtual override {
         super._checkImmutables();
-
         assert(this.gasService() == gasService);
         assert(address(this.gateway()) == gatewayAddress);
     }
